@@ -12,12 +12,18 @@
         .active { display: block; }
         
         /* 대기실 동그라미 스타일 */
-        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; min-height: 100px; }
-        .user-circle { width: 70px; height: 70px; background: var(--primary); color: white; border-radius: 50%; 
-                       display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;
-                       animation: bounce 2s infinite ease-in-out; overflow: hidden; padding: 5px; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
+#user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; min-height: 150px; }
+.user-circle { 
+    width: 110px; height: 110px; /* 크기 확대 */
+    color: white; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 0.85rem; font-weight: bold;
+    animation: bounce 2s infinite ease-in-out; 
+    overflow-wrap: break-word; word-break: break-all; /* 긴 이름 줄바꿈 */
+    padding: 10px; text-align: center; line-height: 1.2;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+        
         /* 입력창 및 버튼 */
         input { padding: 15px; width: 80%; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; }
         button { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin: 5px; font-size: 1rem; }
@@ -39,10 +45,11 @@
         <input type="text" id="input-room" placeholder="방 번호 (예: 1234)">
         <br>
         <div id="student-inputs">
-            <input type="text" id="input-name" placeholder="닉네임 입력">
-            <br>
-        </div>
-        <button id="btn-join" class="btn-blue" onclick="handleEntry()">수업 참여하기</button>
+<div id="student-inputs">
+    <input type="text" id="input-name" placeholder="닉네임 입력 (최대 10자)" maxlength="10">
+    <br>
+</div>
+            <button id="btn-join" class="btn-blue" onclick="handleEntry()">수업 참여하기</button>
     </div>
 </div>
 
@@ -158,21 +165,28 @@
             }
         });
 
-        // 2. 참여 학생 목록 감지 (동그라미 닉네임)
-        onValue(ref(db, `rooms/${currentRoom}/users`), (snapshot) => {
-            const listDiv = document.getElementById('user-list');
-            listDiv.innerHTML = "";
-            const data = snapshot.val();
-            if(data) {
-                Object.values(data).forEach(user => {
-                    const circle = document.createElement('div');
-                    circle.className = 'user-circle';
-                    circle.innerText = user.name;
-                    listDiv.appendChild(circle);
-                });
-            }
-        });
+// 2. 참여 학생 목록 감지 (랜덤 색상 및 동그라미 닉네임)
+const studentColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FDCB6E', '#6C5CE7', '#FF8B94', '#2ecc71', '#e67e22'];
 
+onValue(ref(db, `rooms/${currentRoom}/users`), (snapshot) => {
+    const listDiv = document.getElementById('user-list');
+    listDiv.innerHTML = "";
+    const data = snapshot.val();
+    if(data) {
+        Object.entries(data).forEach(([key, user]) => {
+            const circle = document.createElement('div');
+            circle.className = 'user-circle';
+            
+            // 유저 고유 키값을 활용해 색상을 고정 배정 (새로고침해도 색상 유지)
+            const colorIndex = key.charCodeAt(key.length - 1) % studentColors.length;
+            circle.style.backgroundColor = studentColors[colorIndex];
+            
+            circle.innerText = user.name;
+            listDiv.appendChild(circle);
+        });
+    }
+});
+        
         // 3. 문제 데이터 감지
         onValue(ref(db, `rooms/${currentRoom}/problem`), (snapshot) => {
             const prob = snapshot.val();
