@@ -6,140 +6,157 @@
     <title>AI 수학 객관식 퀴즈 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        :root { --primary: #007bff; --teacher: #2d3436; --bg: #f4f7f9; --red: #e21b3c; --blue: #1368ce; --yellow: #d89e00; --green: #26890c; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; overflow-x: hidden; }
-        .view { display: none; max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        /* 깔끔하고 모던한 플랫 디자인 컬러 팔레트 */
+        :root { --primary: #3b82f6; --teacher: #1e293b; --bg: #f8fafc; --red: #ef4444; --blue: #3b82f6; --yellow: #f59e0b; --green: #10b981; --gray: #94a3b8; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; color: #334155; }
+        
+        /* 뷰 컨테이너 간소화 */
+        .view { display: none; max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
         .active { display: block; }
         
-        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0; }
-        .user-circle { width: 80px; height: 80px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; overflow-wrap: break-word; padding: 5px; text-align: center; line-height: 1.2; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        
-        input, select, textarea { padding: 12px; width: 95%; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; box-sizing: border-box; }
-        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; font-size: 1rem; transition: 0.2s; }
+        /* 공통 요소 */
+        input, select, textarea { padding: 14px; width: 100%; margin-bottom: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; box-sizing: border-box; background: #f8fafc; }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        button { padding: 14px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin: 4px; font-size: 1rem; transition: background 0.2s; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-blue { background: var(--primary); color: white; }
+        .btn-blue:hover { background: #2563eb; }
         .btn-dark { background: var(--teacher); color: white; }
-        .btn-red { background: #ff4757; color: white; }
-        .btn-green { background: #2ecc71; color: white; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-green { background: var(--green); color: white; }
 
-        .quiz-item { border: 1px solid #eee; padding: 20px; margin-bottom: 20px; border-radius: 15px; text-align: left; background: #fafafa; }
-        .opt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-        .opt-row input[type="radio"] { width: 20px; height: 20px; margin: 0; }
+        /* 대기실 유저 리스트 */
+        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 24px 0; }
+        .user-circle { width: 70px; height: 70px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; overflow-wrap: break-word; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* 퀴즈 영역 */
+        .quiz-item { border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 24px; border-radius: 12px; text-align: left; background: white; }
+        .opt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .opt-row input[type="radio"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
         .opt-row input[type="text"] { margin: 0; flex: 1; }
-        .time-input { width: 30% !important; margin-top: 10px !important; }
+        .time-input { width: 30% !important; margin-top: 12px !important; }
 
-        #problem-area { font-size: 1.8rem; margin: 20px 0; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 10px solid var(--primary); min-height: 100px; }
+        #problem-area { font-size: 1.6rem; margin: 24px 0; padding: 30px; background: #f1f5f9; border-radius: 12px; border-left: 6px solid var(--primary); min-height: 80px; text-align: left; }
         
-        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .choice-btn { height: 100px; font-size: 1.2rem; color: white; border-radius: 12px; transition: 0.2s; }
+        /* 선택지 및 타임아웃 X 오버레이 */
+        .choice-area-wrapper { position: relative; margin-top: 20px; }
+        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .choice-btn { height: 90px; font-size: 1.2rem; color: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .c0 { background: var(--red); } .c1 { background: var(--blue); } .c2 { background: var(--yellow); } .c3 { background: var(--green); }
+        
+        #wrong-x-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10; justify-content: center; align-items: center; font-size: 6rem; color: var(--red); font-weight: bold; border-radius: 10px; }
 
-        /* 폭탄 및 밧줄 타이머 UI */
-        .timer-container { display: flex; align-items: center; margin-top: 30px; padding: 10px; background: #eee; border-radius: 10px; }
-        .bomb-icon { font-size: 2rem; margin-right: 10px; }
-        .rope-track { flex: 1; height: 10px; background: #ccc; border-radius: 5px; overflow: hidden; position: relative; }
-        .rope-burn { height: 100%; background: #ff9800; width: 100%; transform-origin: left; }
-        .timer-text { font-size: 1.2rem; font-weight: bold; margin-left: 10px; width: 50px; }
+        /* 타이머 UI 및 미니 진동 애니메이션 */
+        .timer-container { display: flex; align-items: center; margin-top: 30px; padding: 12px 20px; background: #f1f5f9; border-radius: 10px; }
+        .bomb-icon { font-size: 1.8rem; margin-right: 12px; display: inline-block; }
+        .shake-small { animation: shake-small 0.4s infinite; }
+        @keyframes shake-small { 0%, 100% {transform: translateX(0) rotate(0);} 25% {transform: translateX(-3px) rotate(-10deg);} 75% {transform: translateX(3px) rotate(10deg);} }
+        .rope-track { flex: 1; height: 8px; background: #cbd5e1; border-radius: 4px; overflow: hidden; position: relative; }
+        .rope-burn { height: 100%; background: var(--yellow); width: 100%; transform-origin: left; }
+        .timer-text { font-size: 1.1rem; font-weight: bold; margin-left: 16px; width: 45px; color: #475569; }
 
-        /* 폭발 이펙트 전체 화면 */
-        #explosion-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #fff, #ff9800, #ff0000, #000); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; }
-        #explosion-overlay h1 { font-size: 6rem; text-shadow: 0 0 20px #fff; animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: translate(2px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(0px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(2px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(2px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        /* 교사용 현황판 */
+        .progress-board { display: flex; gap: 16px; overflow-x: auto; padding: 20px 0; min-height: 180px; align-items: flex-start; }
+        .prob-col { flex: 0 0 110px; background: #f8fafc; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .prob-col h4 { margin: 0; font-size: 0.95rem; color: #475569; }
 
-        /* 교사용 진행 현황 보드 */
-        .progress-board { display: flex; gap: 15px; overflow-x: auto; padding: 20px 0; min-height: 200px; align-items: flex-start; }
-        .prob-col { flex: 0 0 120px; background: #f4f7f9; border-radius: 10px; padding: 10px; border: 1px solid #ddd; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .prob-col h4 { margin: 0 0 10px 0; font-size: 1rem; color: #333; }
-
-        /* 시상대 및 결과 표 */
-        .podium-container { display: flex; align-items: flex-end; justify-content: center; height: 250px; gap: 10px; margin-bottom: 30px; border-bottom: 3px solid #ddd; padding-bottom: 10px; }
-        .step { width: 120px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-top-left-radius: 15px; border-top-right-radius: 15px; font-weight: bold; padding-bottom: 15px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
-        .step.first { height: 200px; background: linear-gradient(to top, #FFD700, #FEE140); }
-        .step.second { height: 150px; background: linear-gradient(to top, #C0C0C0, #E2E2E2); }
-        .step.third { height: 110px; background: linear-gradient(to top, #CD7F32, #E6A15C); }
-        .table-container { height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; text-align: center; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; }
-        th { background: #f4f7f9; position: sticky; top: 0; }
+        /* 시상대 및 결과 표 (동점자 다수 처리 구조) */
+        .podium-container { display: flex; align-items: flex-end; justify-content: center; min-height: 240px; gap: 8px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; overflow-x: auto; flex-wrap: nowrap; }
+        .step { width: 95px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-radius: 8px 8px 0 0; padding: 12px 4px; text-align: center; flex-shrink: 0; }
+        .step.first { height: 190px; background: #fbbf24; }
+        .step.second { height: 150px; background: #94a3b8; }
+        .step.third { height: 110px; background: #b45309; }
+        .step-name { font-size: 0.95rem; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+        .step-score { font-size: 0.8rem; margin-top: 6px; line-height: 1.3; opacity: 0.9; }
+        
+        .table-container { max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.95rem; }
+        th, td { padding: 14px; border-bottom: 1px solid #f1f5f9; }
+        th { background: #f8fafc; position: sticky; top: 0; color: #64748b; font-weight: 600; }
+        td { color: #334155; }
     </style>
 </head>
 <body>
 
-<div id="explosion-overlay">
-    <h1>💥 시간 초과 💥</h1>
-</div>
-
 <div id="view-entry" class="view active">
-    <h1>🎓 AI 수학 객관식 퀴즈</h1>
-    <div id="teacher-entry-options" style="display:none; margin-bottom: 20px;">
-        <button class="btn-green" onclick="showView('view-quiz-manager')">퀴즈 세트 제작/관리</button>
+    <h1 style="color:var(--teacher); margin-bottom: 30px;">수학 객관식 퀴즈</h1>
+    <div id="teacher-entry-options" style="display:none; margin-bottom: 24px;">
+        <button class="btn-green" onclick="showView('view-quiz-manager')">퀴즈 세트 제작 및 관리</button>
     </div>
     <div id="entry-form">
-        <input type="text" id="input-room" placeholder="방 번호 입력">
+        <input type="text" id="input-room" placeholder="방 번호를 입력하세요">
         <div id="student-inputs-area">
-            <input type="text" id="input-name" placeholder="닉네임 입력 (최대 10자)" maxlength="10">
+            <input type="text" id="input-name" placeholder="닉네임 (최대 10자)" maxlength="10">
         </div>
-        <div id="teacher-set-selection" style="display:none;">
-            <p>사용할 퀴즈 세트 선택:</p>
-            <select id="select-quiz-set"><option value="">퀴즈를 먼저 제작하세요</option></select>
+        <div id="teacher-set-selection" style="display:none; text-align: left; margin-bottom: 10px;">
+            <label style="font-size: 0.9rem; color:#64748b; font-weight:bold;">사용할 퀴즈 세트 선택</label>
+            <select id="select-quiz-set" style="margin-top: 5px;"><option value="">퀴즈를 먼저 제작하세요</option></select>
         </div>
-        <br><button id="btn-join" class="btn-blue" onclick="handleEntry()">수업 참여하기</button>
+        <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin: 10px 0 0 0;">수업 참여하기</button>
     </div>
 </div>
 
 <div id="view-quiz-manager" class="view">
-    <h2>📝 객관식 퀴즈 제작</h2>
-    <input type="text" id="quiz-set-title" placeholder="퀴즈 세트 제목">
+    <h2 style="margin-bottom: 24px;">📝 객관식 퀴즈 제작</h2>
+    <input type="text" id="quiz-set-title" placeholder="퀴즈 세트 제목을 입력하세요">
     <div id="quiz-questions-input"></div>
-    <button class="btn-blue" onclick="addQuestionInput()">+ 문제 추가</button>
-    <button class="btn-green" onclick="saveQuizSet()">퀴즈 세트 저장</button>
-    <button class="btn-dark" onclick="showView('view-entry')">뒤로 가기</button>
-    <hr><h3>저장된 퀴즈 목록</h3><div id="saved-quiz-list"></div>
+    <div style="text-align: right; margin-top: 10px;">
+        <button class="btn-blue" onclick="addQuestionInput()">+ 문제 추가</button>
+        <button class="btn-green" onclick="saveQuizSet()">저장하기</button>
+        <button class="btn-dark" onclick="showView('view-entry')">돌아가기</button>
+    </div>
+    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+    <h3 style="text-align: left; font-size: 1.1rem;">저장된 퀴즈 목록</h3>
+    <div id="saved-quiz-list" style="text-align: left;"></div>
 </div>
 
 <div id="view-lobby" class="view">
-    <h2>🏫 <span id="display-room"></span>번 강의실 (대기중)</h2>
-    <p id="lobby-msg">선생님이 퀴즈를 오픈할 때까지 기다려주세요.</p>
-    <div id="student-start-area" style="display:none; margin: 20px 0;">
-        <button class="btn-blue" style="font-size:1.5rem; padding:15px 30px;" onclick="startStudentQuiz()">🚀 퀴즈 시작하기</button>
+    <h2 style="color: var(--primary);">🏫 <span id="display-room"></span>번 강의실</h2>
+    <p id="lobby-msg" style="color: #64748b; font-size: 1.1rem; margin-bottom: 30px;">선생님이 퀴즈를 오픈할 때까지 기다려주세요.</p>
+    <div id="student-start-area" style="display:none; margin: 30px 0;">
+        <button class="btn-blue" style="font-size:1.2rem; padding:16px 32px; width: 100%;" onclick="startStudentQuiz()">퀴즈 시작하기</button>
     </div>
     <div id="user-list"></div>
-    <button class="btn-red" onclick="leaveRoom()">방 나가기</button>
+    <button class="btn-red" onclick="leaveRoom()" style="margin-top: 20px;">나가기</button>
 </div>
 
 <div id="view-class" class="view">
-    <div style="font-weight:bold; font-size:1.2rem; color:#555;">문제 <span id="current-q-num">1</span> / <span id="total-q-num"></span></div>
+    <div style="font-weight:600; font-size:1.1rem; color:#64748b; text-align: left;">문제 <span id="current-q-num">1</span> / <span id="total-q-num"></span></div>
     <div id="problem-area">문제를 불러오는 중...</div>
-    <div id="choice-area" class="choice-grid">
-        <button class="choice-btn c0" id="btn-c0" onclick="submitChoice(0)">1번</button>
-        <button class="choice-btn c1" id="btn-c1" onclick="submitChoice(1)">2번</button>
-        <button class="choice-btn c2" id="btn-c2" onclick="submitChoice(2)">3번</button>
-        <button class="choice-btn c3" id="btn-c3" onclick="submitChoice(3)">4번</button>
+    
+    <div class="choice-area-wrapper">
+        <div id="wrong-x-overlay">❌</div>
+        <div id="choice-area" class="choice-grid">
+            <button class="choice-btn c0" id="btn-c0" onclick="submitChoice(0)">1번</button>
+            <button class="choice-btn c1" id="btn-c1" onclick="submitChoice(1)">2번</button>
+            <button class="choice-btn c2" id="btn-c2" onclick="submitChoice(2)">3번</button>
+            <button class="choice-btn c3" id="btn-c3" onclick="submitChoice(3)">4번</button>
+        </div>
     </div>
+    
     <div class="timer-container">
-        <span class="bomb-icon">💣</span>
+        <span class="bomb-icon" id="bomb-ui">💣</span>
         <div class="rope-track"><div class="rope-burn" id="rope-ui"></div></div>
         <span class="timer-text" id="timer-sec-ui">0s</span>
     </div>
 </div>
 
 <div id="view-progress" class="view">
-    <h2>📊 실시간 학생 진행 현황</h2>
-    <div class="progress-board" id="progress-board">
-        </div>
-    <div id="teacher-result-area" style="display:none; margin-top:20px;">
-        <p style="color:var(--red); font-weight:bold;">모든 학생이 퀴즈를 완료했습니다.</p>
-        <button class="btn-blue" style="font-size:1.5rem; padding:15px 30px;" onclick="triggerResults()">🏆 결과 발표하기</button>
+    <h2 style="text-align: left;">📊 실시간 진행 현황</h2>
+    <div class="progress-board" id="progress-board"></div>
+    <div id="teacher-result-area" style="display:none; margin-top:30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <p style="color:var(--primary); font-weight:bold; margin-bottom: 15px;">모든 학생이 퀴즈를 완료했습니다.</p>
+        <button class="btn-blue" style="font-size:1.1rem; width: 100%;" onclick="triggerResults()">결과 발표하기</button>
     </div>
 </div>
 
 <div id="view-ended" class="view">
-    <h2 style="font-size:2.5rem; margin-top:50px;">🏁 퀴즈가 종료되었습니다!</h2>
-    <p>다른 친구들이 문제를 다 풀 때까지 기다려 주세요.</p>
+    <h2 style="font-size:2rem; margin-top:40px; color: var(--teacher);">🏁 퀴즈 종료</h2>
+    <p style="color: #64748b; font-size: 1.1rem; margin-top: 20px;">다른 친구들이 문제를 다 풀 때까지 대기해 주세요.</p>
 </div>
 
 <div id="view-results" class="view">
-    <h2>🏆 최종 순위 발표 🏆</h2>
+    <h2 style="margin-bottom: 30px;">🏆 최종 순위 발표</h2>
     <div class="podium-container" id="podium-area"></div>
     <div class="table-container">
         <table>
@@ -147,20 +164,22 @@
             <tbody id="result-tbody"></tbody>
         </table>
     </div>
-    <button class="btn-red" onclick="leaveRoom()" style="margin-top:20px;">수업 종료하고 나가기</button>
+    <button class="btn-dark" onclick="leaveRoom()" style="margin-top:24px; width: 100%;">종료하고 나가기</button>
 </div>
 
-<div id="teacher-controls" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2d3436; padding:15px; color:white; z-index:1000;">
-    <strong>👨‍🏫 교사 제어:</strong>
-    <button class="btn-blue" id="btn-open-quiz" onclick="openQuiz()">퀴즈 오픈</button>
-    <button class="btn-dark" onclick="resetRoom()" style="float:right;">방 전체 초기화</button>
+<div id="teacher-controls" style="display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg); border-top: 1px solid #e2e8f0; padding:15px 20px; z-index:1000; box-shadow: 0 -4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+    <strong style="color: var(--teacher);">👨‍🏫 교사 제어 패널</strong>
+    <div>
+        <button class="btn-blue" id="btn-open-quiz" onclick="openQuiz()" style="margin-right: 10px;">퀴즈 오픈</button>
+        <button class="btn-red" onclick="resetRoom()">방 초기화</button>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, push, remove, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-   // 1. 본인의 Firebase 설정값을 여기에 꼭 넣으세요!
+    // 1. 본인의 Firebase 설정값을 여기에 꼭 넣으세요!
     const firebaseConfig = {
   apiKey: "AIzaSyD1YUdjxb-a9nMog4OVOkg8W9UyvrQ6NSk",
   authDomain: "ai-math-quiz2026.firebaseapp.com",
@@ -174,7 +193,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const isTeacher = new URLSearchParams(window.location.search).get('role') === 'teacher';
-    const userColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FDCB6E', '#6C5CE7', '#2ecc71'];
+    const userColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
     
     let currentRoom = "", myName = "선생님", myKey = "", questionCount = 0;
     let quizDataCache = null;
@@ -182,24 +201,20 @@
     let timerInterval = null;
     let explosionTimeout = null;
 
-    // --- 기본 유틸 ---
     window.showView = (id) => {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     };
 
-    function getUserColor(key) {
-        return userColors[key.charCodeAt(key.length - 1) % userColors.length];
-    }
+    function getUserColor(key) { return userColors[key.charCodeAt(key.length - 1) % userColors.length]; }
 
-    // --- 퀴즈 제작 ---
     window.addQuestionInput = () => {
         const id = questionCount++;
         const div = document.createElement('div'); div.className = 'quiz-item';
-        div.innerHTML = `<strong>문제 ${id + 1} (LaTeX 가능):</strong><textarea class="q-text" rows="2"></textarea>
-            <input type="number" class="q-time time-input" placeholder="제한시간 (예: 30초)" value="30">
-            <p style="margin-top:10px;">보기 입력 및 정답 선택:</p>
-            <div class="opt-container">${[0,1,2,3].map(i => `<div class="opt-row"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''}> <input type="text" class="q-opt" placeholder="보기 ${i+1}"></div>`).join('')}</div>`;
+        div.innerHTML = `<strong style="color:var(--primary);">문제 ${id + 1}</strong><textarea class="q-text" rows="2" placeholder="수식(LaTeX) 포함 가능"></textarea>
+            <input type="number" class="q-time time-input" placeholder="시간(초)" value="30">
+            <div style="margin-top:12px; font-size:0.9rem; color:#64748b; font-weight:bold;">보기 입력 (정답 체크)</div>
+            <div class="opt-container" style="margin-top:8px;">${[0,1,2,3].map(i => `<div class="opt-row"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''}> <input type="text" class="q-opt" placeholder="보기 ${i+1}"></div>`).join('')}</div>`;
         document.getElementById('quiz-questions-input').appendChild(div);
     };
 
@@ -213,8 +228,8 @@
                 timeLimit: parseInt(item.querySelector('.q-time').value) || 30
             };
         }).filter(q => q.text && q.options[0]);
-        if(!title || !questions.length) return alert("제목과 문제를 확인하십시오.");
-        push(ref(db, `quizSets`), { title, questions }).then(() => { alert("저장 완료!"); loadQuizSets(); });
+        if(!title || !questions.length) return alert("제목과 문제를 입력하십시오.");
+        push(ref(db, `quizSets`), { title, questions }).then(() => { alert("저장 완료"); loadQuizSets(); });
     };
 
     window.loadQuizSets = () => {
@@ -223,36 +238,34 @@
             select.innerHTML = ""; list.innerHTML = "";
             if(snap.val()) Object.entries(snap.val()).forEach(([id, s]) => {
                 select.innerHTML += `<option value="${id}">${s.title}</option>`;
-                list.innerHTML += `<div style="margin-bottom:8px;">• ${s.title} <button onclick="deleteQuizSet('${id}')" style="padding:2px 5px; background:var(--red); color:white; border-radius:4px;">삭제</button></div>`;
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9;"><span>${s.title}</span> <button onclick="deleteQuizSet('${id}')" style="background:var(--red); color:white; padding:6px 12px; font-size:0.8rem;">삭제</button></div>`;
             });
         });
     };
     window.deleteQuizSet = (id) => remove(ref(db, `quizSets/${id}`));
 
-    // --- 입장 로직 ---
     window.handleEntry = () => {
         currentRoom = document.getElementById('input-room').value;
-        if(!currentRoom) return alert("방 번호 입력!");
+        if(!currentRoom) return alert("방 번호를 입력하십시오.");
         if(isTeacher) {
-            const setId = document.getElementById('select-quiz-set').value; if(!setId) return alert("세트 선택!");
+            const setId = document.getElementById('select-quiz-set').value; if(!setId) return alert("세트를 선택하십시오.");
             onValue(ref(db, `quizSets/${setId}`), (snap) => {
                 const data = snap.val();
                 set(ref(db, `rooms/${currentRoom}`), { status: 'lobby', quizData: data });
                 quizDataCache = data;
-                showView('view-lobby');
+                showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom;
                 startTeacherSync();
             }, { onlyOnce: true });
         } else {
-            myName = document.getElementById('input-name').value; if(!myName) return alert("이름 입력!");
+            myName = document.getElementById('input-name').value; if(!myName) return alert("닉네임을 입력하십시오.");
             const uRef = push(ref(db, `rooms/${currentRoom}/users`)); myKey = uRef.key;
             onDisconnect(ref(db, `rooms/${currentRoom}/users/${myKey}`)).remove();
             set(uRef, { name: myName, currentIdx: -1, correct: 0 }); 
-            showView('view-lobby');
+            showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom;
             startStudentSync();
         }
     };
 
-    // --- 교사용 제어 및 모니터링 ---
     window.openQuiz = () => {
         update(ref(db, `rooms/${currentRoom}`), { status: 'opened' });
         document.getElementById('btn-open-quiz').style.display = 'none';
@@ -265,41 +278,32 @@
 
     function startTeacherSync() {
         onValue(ref(db, `rooms/${currentRoom}/status`), snap => {
-            if(snap.val() === 'results') {
-                showView('view-results');
-                renderResults();
-            }
+            if(snap.val() === 'results') { showView('view-results'); renderResults(); }
         });
 
-        // 학생 목록 및 진행상황 실시간 렌더링
         onValue(ref(db, `rooms/${currentRoom}/users`), snap => {
             if(!quizDataCache) return;
             const users = snap.val() || {};
             const totalQ = quizDataCache.questions.length;
             
-            // 로비 화면의 유저 리스트 업데이트 (대기 중)
             const lobbyList = document.getElementById('user-list'); lobbyList.innerHTML = "";
-            
-            // 진행 모니터링 보드 업데이트
             const board = document.getElementById('progress-board'); board.innerHTML = "";
+            
             let columnsHTML = "";
             for(let i=0; i<=totalQ; i++) {
-                let title = i === totalQ ? "완료" : `${i+1}번 문제`;
-                columnsHTML += `<div class="prob-col" id="col-${i}"><h4>${title}</h4></div>`;
+                columnsHTML += `<div class="prob-col" id="col-${i}"><h4>${i === totalQ ? "완료" : `${i+1}번`}</h4></div>`;
             }
             board.innerHTML = columnsHTML;
 
-            let allFinished = true;
-            let userCount = 0;
+            let allFinished = true, userCount = 0;
 
             Object.entries(users).forEach(([key, u]) => {
                 userCount++;
-                const circle = `<div class="user-circle" style="background:${getUserColor(key)}; width:50px; height:50px; font-size:0.6rem;">${u.name}</div>`;
+                const color = getUserColor(key);
+                const circle = `<div class="user-circle" style="background:${color}; width:40px; height:40px; font-size:0.75rem;">${u.name}</div>`;
                 
-                // 로비 배치
-                lobbyList.innerHTML += `<div class="user-circle" style="background:${getUserColor(key)};">${u.name}</div>`;
+                lobbyList.innerHTML += `<div class="user-circle" style="background:${color};">${u.name}</div>`;
                 
-                // 보드 배치
                 let targetColIdx = u.currentIdx === -1 ? 0 : u.currentIdx;
                 if (targetColIdx > totalQ) targetColIdx = totalQ;
                 
@@ -309,23 +313,15 @@
                 if(u.currentIdx < totalQ) allFinished = false;
             });
 
-            // 모두 완료 감지
-            if(userCount > 0 && allFinished) {
-                document.getElementById('teacher-result-area').style.display = 'block';
-            } else {
-                document.getElementById('teacher-result-area').style.display = 'none';
-            }
+            document.getElementById('teacher-result-area').style.display = (userCount > 0 && allFinished) ? 'block' : 'none';
         });
     }
 
-    // --- 학생용 풀이 흐름 ---
     function startStudentSync() {
-        // 퀴즈 데이터 캐싱
         onValue(ref(db, `rooms/${currentRoom}/quizData`), snap => {
             quizDataCache = snap.val();
             if(quizDataCache) document.getElementById('total-q-num').innerText = quizDataCache.questions.length;
         });
-
         onValue(ref(db, `rooms/${currentRoom}/status`), snap => {
             const s = snap.val();
             if(!s) { alert("방이 존재하지 않습니다."); location.reload(); return; }
@@ -333,8 +329,7 @@
                 document.getElementById('lobby-msg').innerText = "선생님이 퀴즈를 오픈했습니다!";
                 document.getElementById('student-start-area').style.display = 'block';
             } else if (s === 'results') {
-                showView('view-results');
-                renderResults();
+                showView('view-results'); renderResults();
             }
         });
     }
@@ -342,19 +337,15 @@
     window.startStudentQuiz = () => {
         myCurrentIdx = 0;
         update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: 0 });
-        showView('view-class');
-        loadProblem();
+        showView('view-class'); loadProblem();
     };
 
     function loadProblem() {
         if(!quizDataCache) return;
         const totalQ = quizDataCache.questions.length;
-        
-        // 퀴즈 모두 완료 시
         if (myCurrentIdx >= totalQ) {
             update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: totalQ });
-            showView('view-ended');
-            return;
+            showView('view-ended'); return;
         }
 
         update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: myCurrentIdx });
@@ -364,59 +355,39 @@
         document.getElementById('problem-area').innerHTML = q.text;
         [0,1,2,3].forEach(i => {
             const btn = document.getElementById(`btn-c${i}`);
-            btn.innerText = q.options[i] || "보기 없음";
-            btn.disabled = false;
+            btn.innerText = q.options[i] || "보기 없음"; btn.disabled = false;
         });
         MathJax.typesetPromise();
-
         startVisualTimer(q.timeLimit);
     }
 
     function startVisualTimer(duration) {
-        clearInterval(timerInterval);
-        clearTimeout(explosionTimeout);
-        
+        clearInterval(timerInterval); clearTimeout(explosionTimeout);
+        document.getElementById('bomb-ui').classList.remove('shake-small');
+        document.getElementById('wrong-x-overlay').style.display = 'none';
+
         const rope = document.getElementById('rope-ui');
         const text = document.getElementById('timer-sec-ui');
         
-        // 밧줄 초기화
-        rope.style.transition = 'none';
-        rope.style.width = '100%';
-        
-        // 지연 후 애니메이션 시작
-        setTimeout(() => {
-            rope.style.transition = `width ${duration}s linear`;
-            rope.style.width = '0%';
-        }, 50);
+        rope.style.transition = 'none'; rope.style.width = '100%';
+        setTimeout(() => { rope.style.transition = `width ${duration}s linear`; rope.style.width = '0%'; }, 50);
 
-        let timeLeft = duration;
-        text.innerText = `${timeLeft}s`;
-
+        let timeLeft = duration; text.innerText = `${timeLeft}s`;
         timerInterval = setInterval(() => {
-            timeLeft--;
-            text.innerText = `${timeLeft}s`;
+            timeLeft--; text.innerText = `${timeLeft}s`;
             if(timeLeft <= 0) clearInterval(timerInterval);
         }, 1000);
 
-        // 시간 초과 시 폭발 처리
-        explosionTimeout = setTimeout(() => {
-            explodeAndNext();
-        }, duration * 1000);
+        explosionTimeout = setTimeout(() => { explodeAndNext(); }, duration * 1000);
     }
 
     window.submitChoice = (idx) => {
         [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true);
-        clearInterval(timerInterval);
-        clearTimeout(explosionTimeout);
-
-        const q = quizDataCache.questions[myCurrentIdx];
-        const isCorrect = (q.answer === idx);
-
-        if(isCorrect) {
-            // 정답 수 증가 트랜잭션 (간단히 현재값 가져와서 업데이트)
+        clearInterval(timerInterval); clearTimeout(explosionTimeout);
+        
+        if(quizDataCache.questions[myCurrentIdx].answer === idx) {
             onValue(ref(db, `rooms/${currentRoom}/users/${myKey}/correct`), snap => {
-                let currentScore = snap.val() || 0;
-                update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { correct: currentScore + 1 });
+                update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { correct: (snap.val() || 0) + 1 });
                 nextProblem();
             }, { onlyOnce: true });
         } else {
@@ -426,56 +397,72 @@
 
     function explodeAndNext() {
         [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true);
-        const overlay = document.getElementById('explosion-overlay');
-        overlay.style.display = 'flex';
-        
+        document.getElementById('bomb-ui').classList.add('shake-small');
+        document.getElementById('wrong-x-overlay').style.display = 'flex';
         setTimeout(() => {
-            overlay.style.display = 'none';
-            // 시간초과는 오답 처리이므로 점수 증가 없이 다음 문제로
+            document.getElementById('bomb-ui').classList.remove('shake-small');
+            document.getElementById('wrong-x-overlay').style.display = 'none';
             nextProblem();
-        }, 1500); // 1.5초 폭발 이펙트 유지
+        }, 500);
     }
 
-    function nextProblem() {
-        myCurrentIdx++;
-        loadProblem();
-    }
+    function nextProblem() { myCurrentIdx++; loadProblem(); }
 
-    // --- 결과 및 정리 ---
     window.renderResults = () => {
         onValue(ref(db, `rooms/${currentRoom}`), (snap) => {
             const data = snap.val(); if(!data || !data.users) return;
             const totalQs = data.quizData.questions.length;
             
-            let sorted = Object.values(data.users).sort((a,b) => (b.correct||0) - (a.correct||0));
+            let usersArr = Object.values(data.users);
+            let scoreMap = {};
+            usersArr.forEach(u => {
+                const s = u.correct || 0;
+                if(!scoreMap[s]) scoreMap[s] = [];
+                scoreMap[s].push(u);
+            });
             
-            const p = document.getElementById('podium-area');
-            const first = sorted[0] || {name:'-', correct:0};
-            const second = sorted[1] || {name:'-', correct:0};
-            const third = sorted[2] || {name:'-', correct:0};
+            let uniqueScores = Object.keys(scoreMap).map(Number).sort((a,b) => b - a);
+            
+            let rank1Users = scoreMap[uniqueScores[0]] || [];
+            let rank2Users = scoreMap[uniqueScores[1]] || [];
+            let rank3Users = scoreMap[uniqueScores[2]] || [];
 
-            p.innerHTML = `
-                <div class="step second"><div style="font-size:2rem;">🥈</div><div class="step-name">${second.name}</div><div class="step-score">${second.correct} / ${totalQs}</div></div>
-                <div class="step first"><div style="font-size:3rem; margin-bottom:10px;">🥇</div><div class="step-name">${first.name}</div><div class="step-score">${first.correct} / ${totalQs}</div></div>
-                <div class="step third"><div style="font-size:1.5rem;">🥉</div><div class="step-name">${third.name}</div><div class="step-score">${third.correct} / ${totalQs}</div></div>
-            `;
+            const createStepHTML = (user, cls, icon) => {
+                const acc = totalQs > 0 ? Math.round(((user.correct||0) / totalQs) * 100) : 0;
+                return `<div class="step ${cls}"><div style="font-size:1.5rem;">${icon}</div><div class="step-name">${user.name}</div><div class="step-score">${user.correct||0}/${totalQs}<br>(${acc}%)</div></div>`;
+            };
+
+            let podiumHTML = "";
+            rank2Users.forEach(u => podiumHTML += createStepHTML(u, 'second', '🥈'));
+            rank1Users.forEach(u => podiumHTML += createStepHTML(u, 'first', '🥇'));
+            rank3Users.forEach(u => podiumHTML += createStepHTML(u, 'third', '🥉'));
+            document.getElementById('podium-area').innerHTML = podiumHTML;
             
             const tb = document.getElementById('result-tbody'); tb.innerHTML = "";
-            sorted.forEach((u, i) => {
-                tb.innerHTML += `<tr><td>${i+1}위</td><td>${u.name}</td><td>${u.correct||0}</td><td>${Math.round((u.correct||0)/totalQs*100)}%</td></tr>`;
+            let currentRank = 1;
+            uniqueScores.forEach((score, idx) => {
+                let group = scoreMap[score];
+                if (idx > 2) {
+                    group.forEach(u => {
+                        const acc = totalQs > 0 ? Math.round((u.correct / totalQs) * 100) : 0;
+                        tb.innerHTML += `<tr><td>${currentRank}위</td><td>${u.name}</td><td>${u.correct}</td><td>${acc}%</td></tr>`;
+                    });
+                }
+                currentRank += group.length;
             });
         }, { onlyOnce: true });
     };
 
-    window.resetRoom = () => confirm("초기화?") && remove(ref(db, `rooms/${currentRoom}`)).then(() => location.reload());
-    window.leaveRoom = () => { if(confirm("퇴장?")) { if(myKey) remove(ref(db, `rooms/${currentRoom}/users/${myKey}`)); location.reload(); }};
+    window.resetRoom = () => confirm("방을 초기화하시겠습니까?") && remove(ref(db, `rooms/${currentRoom}`)).then(() => location.reload());
+    window.leaveRoom = () => { if(confirm("종료하고 방을 나가시겠습니까?")) { if(myKey) remove(ref(db, `rooms/${currentRoom}/users/${myKey}`)); location.reload(); }};
 
     if (isTeacher) { 
         document.getElementById('teacher-entry-options').style.display = 'block'; 
         document.getElementById('student-inputs-area').style.display = 'none'; 
         document.getElementById('teacher-set-selection').style.display = 'block'; 
         document.getElementById('btn-join').innerText = "방 생성하기"; 
-        document.getElementById('teacher-controls').style.display = 'block'; 
+        document.getElementById('teacher-controls').style.display = 'flex'; 
+        document.body.style.paddingBottom = "80px";
         loadQuizSets();
     }
 </script>
