@@ -12,64 +12,70 @@
         
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #3C4043; -webkit-font-smoothing: antialiased; text-align: center; }
         
-        .view { display: none; max-width: 800px; margin: 40px auto; background: var(--card-bg); padding: 48px; border-radius: 24px; box-shadow: 0 1px 3px rgba(60,64,67,0.3), 0 4px 8px rgba(60,64,67,0.15); border: none; }
+        .view { display: none; max-width: 800px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid var(--border); }
         .active { display: block; }
 
-        h1, h2 { color: #202124; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 32px; text-align: center; }
+        h1, h2 { color: #202124; font-weight: 700; margin-top: 0; margin-bottom: 24px; text-align: center; }
 
-        .role-wrapper { display: flex; gap: 24px; justify-content: center; margin-bottom: 32px; }
-        .role-card { flex: 1; padding: 32px; border: 2px solid var(--border); border-radius: 20px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); background: white; display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative; }
-        .role-card img { width: 64px; height: 64px; opacity: 0.8; }
-        .role-card span { font-weight: 600; font-size: 1.1rem; color: #5F6368; }
-        .role-card:hover { border-color: var(--primary); background: #F4F7FE; transform: translateY(-4px); }
+        .box { background: #F8F9FA; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+
+        .role-wrapper { display: flex; gap: 20px; justify-content: center; margin-bottom: 24px; }
+        .role-card { flex: 1; padding: 24px; border: 2px solid var(--border); border-radius: 16px; cursor: pointer; transition: 0.2s; background: white; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; }
+        .role-card img { width: 56px; height: 56px; opacity: 0.8; }
+        .role-card span { font-weight: 600; font-size: 1.05rem; color: #5F6368; }
         .role-card.selected { border-color: var(--primary); background: #E8F0FE; }
         .role-card.selected span { color: var(--primary); }
-        .role-card.selected::after { content: '✓'; position: absolute; top: 16px; right: 20px; color: var(--primary); font-size: 1.4rem; font-weight: bold; }
 
-        .disabled-section { filter: grayscale(1) blur(2px); opacity: 0.4; pointer-events: none; transition: 0.5s; }
+        .disabled-section { filter: grayscale(1) blur(2px); opacity: 0.4; pointer-events: none; transition: 0.3s; }
         .enabled-section { filter: none; opacity: 1; pointer-events: auto; }
 
-        input, select, textarea { padding: 16px; width: 100%; margin-bottom: 16px; border-radius: 12px; border: 1px solid var(--border); font-size: 1rem; box-sizing: border-box; background: #fff; transition: border 0.2s; text-align: center; }
+        input, select, textarea { padding: 14px; width: 100%; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 1rem; box-sizing: border-box; text-align: center; }
         input:focus { border: 2px solid var(--primary); outline: none; }
         
-        button { padding: 16px 28px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.2s; margin: 4px; }
+        button { padding: 14px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.2s; margin: 4px; }
+        button:disabled { background: #DADCE0 !important; color: #9AA0A6 !important; cursor: not-allowed; box-shadow: none !important; }
         .btn-blue { background: var(--primary); color: white; }
-        .btn-blue:hover { background: #1765CC; box-shadow: 0 1px 2px rgba(66,133,244,0.3), 0 1px 3px rgba(66,133,244,0.15); }
         .btn-dark { background: var(--teacher); color: white; }
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
 
-        /* 사용자 프로필 원형 크기 대폭 확장 (10글자 수용) */
-        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 24px 0; }
-        .user-circle { width: 95px; height: 95px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: bold; padding: 10px; word-break: keep-all; overflow-wrap: break-word; line-height: 1.2; box-shadow: 0 4px 10px rgba(0,0,0,0.15); text-align: center; flex-shrink: 0; }
+        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 24px 0; }
+        .user-circle-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .user-circle { width: 80px; height: 80px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; padding: 5px; word-break: keep-all; line-height: 1.2; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 4px solid transparent; transition: border-color 0.3s; }
+        .user-circle.ready { border-color: var(--green); }
+        .ready-badge { display: none; position: absolute; top: -5px; right: -5px; background: var(--green); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.8rem; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; }
+        .user-circle.ready + .ready-badge { display: flex; }
 
-        #problem-area { font-size: 1.8rem; margin: 32px 0; padding: 40px; background: #F1F3F4; border-radius: 20px; text-align: left; line-height: 1.5; color: #202124; position: relative; }
-        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; position: relative; }
-        .choice-btn { height: 100px; font-size: 1.2rem; color: white; border-radius: 16px; box-shadow: none; border: none; }
-        .c0 { background: #E21B3C; } .c1 { background: #1368CE; } .c2 { background: #D89E00; } .c3 { background: #26890C; }
-        #wrong-x-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 10; justify-content: center; align-items: center; font-size: 6rem; color: var(--red); font-weight: bold; border-radius: 16px; }
-
-        .timer-wrapper { margin-top: 40px; }
-        .timer-bar-bg { width: 100%; height: 8px; background: #E8EAED; border-radius: 4px; overflow: hidden; position: relative; }
-        .timer-bar-fill { height: 100%; background: var(--primary); width: 100%; transform-origin: left; transition: width linear; }
-        .timer-info { display: flex; justify-content: space-between; margin-top: 12px; font-weight: 600; color: #5F6368; }
-
-        .progress-board { display: flex; gap: 16px; overflow-x: auto; padding: 24px 0; }
-        .prob-col { flex: 0 0 120px; background: #F8F9FA; border-radius: 16px; padding: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .prob-col h4 { margin: 0; font-size: 0.95rem; color: #70757A; }
+        .quiz-item-box { background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 16px; text-align: left; }
         
-        .podium-container { display: flex; align-items: flex-end; justify-content: center; min-height: 280px; gap: 12px; margin-bottom: 40px; padding-bottom: 16px; border-bottom: 2px solid var(--border); overflow-x: auto; flex-wrap: nowrap; }
-        .step { width: 120px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-radius: 20px 20px 8px 8px; padding: 20px 8px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-shrink: 0; }
-        .step.first { height: 220px; background: #FBBC04; }
-        .step.second { height: 170px; background: #9AA0A6; }
-        .step.third { height: 130px; background: #A5673F; }
-        .step-name { font-weight: 700; margin-top: 8px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .step-score { font-size: 0.85rem; margin-top: 4px; opacity: 0.9; }
+        #problem-area { font-size: 1.6rem; margin: 24px 0; padding: 32px; background: #F8F9FA; border-radius: 16px; border-left: 8px solid var(--primary); text-align: left; line-height: 1.5; color: #202124; border: 1px solid var(--border); border-left-width: 8px; }
+        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; position: relative; }
+        .choice-btn { height: 100px; font-size: 1.2rem; color: white; border-radius: 12px; }
+        .c0 { background: #E21B3C; } .c1 { background: #1368CE; } .c2 { background: #D89E00; } .c3 { background: #26890C; }
+        #wrong-x-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 10; justify-content: center; align-items: center; font-size: 5rem; color: var(--red); font-weight: bold; border-radius: 12px; }
 
-        .table-container { border-radius: 16px; border: 1px solid var(--border); overflow: hidden; max-height: 300px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th { background: #F8F9FA; padding: 16px; text-align: center; font-size: 0.9rem; color: #70757A; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
-        td { padding: 16px; text-align: center; border-bottom: 1px solid #F1F3F4; color: #3C4043; }
+        .timer-wrapper { margin-top: 32px; background: white; border: 1px solid var(--border); padding: 16px; border-radius: 12px; }
+        .timer-bar-bg { width: 100%; height: 10px; background: #E8EAED; border-radius: 5px; overflow: hidden; }
+        .timer-bar-fill { height: 100%; background: var(--primary); width: 100%; transform-origin: left; transition: width linear; }
+        
+        .progress-board { display: flex; gap: 12px; overflow-x: auto; padding: 16px 0; }
+        .prob-col { flex: 0 0 100px; background: white; border-radius: 12px; padding: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        
+        .podium-container { display: flex; align-items: flex-end; justify-content: center; min-height: 250px; gap: 12px; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 2px solid var(--border); overflow-x: auto; flex-wrap: nowrap; }
+        .step { width: 110px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-radius: 16px 16px 0 0; padding: 16px 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .step.first { height: 200px; background: #FBBC04; }
+        .step.second { height: 150px; background: #9AA0A6; }
+        .step.third { height: 110px; background: #A5673F; }
+        .step-name { font-weight: 700; margin-top: 8px; font-size: 0.95rem; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .step-score { font-size: 0.8rem; margin-top: 4px; opacity: 0.9; }
+
+        .table-container { border-radius: 12px; border: 1px solid var(--border); overflow: hidden; max-height: 300px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; font-size: 0.95rem; }
+        th { background: #F8F9FA; padding: 14px; text-align: center; color: #5F6368; position: sticky; top: 0; border-bottom: 1px solid var(--border); }
+        td { padding: 14px; text-align: center; border-bottom: 1px solid #F1F3F4; }
+        
+        .result-summary-box { background: #E8F0FE; border: 1px solid #D2E3FC; border-radius: 16px; padding: 24px; margin: 24px 0; color: #1967D2; font-size: 1.2rem; font-weight: 600; line-height: 1.8; }
+        .result-summary-box span { color: var(--teacher); font-size: 1.4rem; font-weight: 700; margin: 0 4px; }
     </style>
 </head>
 <body>
@@ -77,75 +83,86 @@
 <div id="view-entry" class="view active">
     <h1>AI 수학 퀴즈</h1>
     
-    <div class="role-wrapper">
-        <div class="role-card" id="card-student" onclick="selectRole('student')">
-            <img src="https://cdn-icons-png.flaticon.com/512/3449/3449692.png" alt="Student">
-            <span>학생으로 참여</span>
+    <div class="box">
+        <div class="role-wrapper">
+            <div class="role-card" id="card-student" onclick="selectRole('student')">
+                <img src="https://cdn-icons-png.flaticon.com/512/3449/3449692.png" alt="Student">
+                <span>학생용 접속</span>
+            </div>
+            <div class="role-card" id="card-teacher" onclick="selectRole('teacher')">
+                <img src="https://cdn-icons-png.flaticon.com/512/1995/1995539.png" alt="Teacher">
+                <span>교사용 제어</span>
+            </div>
         </div>
-        <div class="role-card" id="card-teacher" onclick="selectRole('teacher')">
-            <img src="https://cdn-icons-png.flaticon.com/512/1995/1995539.png" alt="Teacher">
-            <span>교사로 관리</span>
+        <button class="btn-dark" onclick="applyRole()" style="width: 100%; margin: 0;">역할 선택 완료</button>
+
+        <div id="password-area" style="display:none; margin-top: 20px;">
+            <input type="password" id="teacher-pwd" placeholder="관리자 비밀번호 입력" style="width: calc(100% - 100px); margin-bottom: 0;">
+            <button class="btn-blue" onclick="verifyPwd()" style="width: 80px; margin: 0;">확인</button>
         </div>
     </div>
 
-    <button class="btn-dark" onclick="applyRole()" style="width: 100%; margin-bottom: 20px;">설정 완료</button>
-
-    <div id="password-area" style="display:none; margin-bottom: 24px;">
-        <input type="password" id="teacher-pwd" placeholder="관리자 비밀번호 (abcd)" style="width: calc(100% - 110px); margin-bottom: 0;">
-        <button class="btn-blue" onclick="verifyPwd()" style="width: 100px; margin: 0;">확인</button>
-    </div>
-
-    <div id="action-area" class="disabled-section">
-        <div id="teacher-entry-options" style="display:none; margin-bottom: 24px;">
-            <button class="btn-green" onclick="showView('view-quiz-manager')" style="width: 100%;">📝 퀴즈 세트 제작 및 관리</button>
+    <div id="action-area" class="box disabled-section">
+        <div id="teacher-entry-options" style="display:none; margin-bottom: 20px;">
+            <button class="btn-green" onclick="showView('view-quiz-manager')" style="width: 100%;">📝 퀴즈 세트 신규 제작 / 관리</button>
         </div>
         <div id="entry-form">
-            <input type="text" id="input-room" placeholder="방 번호를 입력하세요">
+            <input type="text" id="input-room" placeholder="접속할 방 번호 입력">
             <div id="student-inputs-area">
-                <input type="text" id="input-name" placeholder="닉네임 (최대 10자)" maxlength="10">
+                <input type="text" id="input-name" placeholder="사용할 닉네임 입력 (최대 10자)" maxlength="10">
             </div>
             <div id="teacher-set-selection" style="display:none; text-align: left;">
-                <label style="font-size: 0.9rem; font-weight: 600; color: #5F6368; margin-left: 4px;">퀴즈 세트 선택</label>
+                <label style="font-size: 0.9rem; font-weight: 600; color: #5F6368;">진행할 퀴즈 세트 선택</label>
                 <select id="select-quiz-set" style="margin-top: 8px;"></select>
             </div>
-            <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin-top: 16px; font-size: 1.1rem;">입장하기</button>
+            <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin-top: 16px;">방 입장하기</button>
         </div>
     </div>
 </div>
 
 <div id="view-quiz-manager" class="view">
-    <h2>📝 퀴즈 제작</h2>
-    <input type="text" id="quiz-set-title" placeholder="퀴즈 세트 제목">
-    <div id="quiz-questions-input"></div>
-    <div style="text-align: right; margin-top: 20px;">
-        <button class="btn-blue" onclick="addQuestionInput()">+ 문제 추가</button>
-        <button class="btn-green" onclick="saveQuizSet()">저장하기</button>
-        <button class="btn-dark" onclick="showView('view-entry')">돌아가기</button>
+    <h2>📝 퀴즈 세트 제작</h2>
+    <div class="box">
+        <input type="text" id="quiz-set-title" placeholder="퀴즈 세트의 제목을 입력하세요">
+        <div id="quiz-questions-input"></div>
+        <div style="text-align: right; margin-top: 16px;">
+            <button class="btn-blue" onclick="addQuestionInput()">+ 새 문제 추가</button>
+            <button class="btn-green" onclick="saveQuizSet()">서버에 저장</button>
+        </div>
     </div>
-    <hr style="margin: 40px 0; border: 0; border-top: 1px solid var(--border);">
-    <div id="saved-quiz-list" style="text-align: left;"></div>
+    <div class="box">
+        <h3 style="margin-top: 0; font-size: 1.1rem; text-align: left; color: #5F6368;">저장된 퀴즈 목록</h3>
+        <div id="saved-quiz-list" style="text-align: left;"></div>
+    </div>
+    <button class="btn-dark" onclick="showView('view-entry')" style="width: 100%;">이전 화면으로 돌아가기</button>
 </div>
 
 <div id="view-lobby" class="view">
     <h2 style="color: var(--primary);">🏫 <span id="display-room"></span>번 강의실</h2>
     
-    <div id="teacher-lobby-controls" style="display:none; margin-bottom: 30px; padding: 20px; background: #F8F9FA; border-radius: 16px; border: 1px solid var(--border);">
-        <h3 style="margin-top:0; font-size: 1.1rem; color: #3C4043;">👨‍🏫 교사 제어 패널</h3>
-        <button class="btn-blue" onclick="openQuiz()" style="font-size: 1.2rem; padding: 16px 32px;">퀴즈 오픈</button>
-        <button class="btn-red" onclick="resetRoom()" style="background: #FEECEB; color: #D93025; border: 1px solid #F6C8C5;">방 전체 초기화</button>
+    <div id="teacher-lobby-controls" class="box" style="display:none;">
+        <h3 style="margin-top:0; font-size: 1.1rem;">👨‍🏫 퀴즈 진행 제어</h3>
+        <p id="teacher-ready-status" style="font-weight: bold; color: var(--red);">학생들의 입장을 기다리는 중입니다.</p>
+        <div>
+            <button class="btn-blue" id="btn-open-quiz" onclick="openQuiz()" disabled>퀴즈 오픈</button>
+            <button class="btn-red" onclick="resetRoom()">방 초기화</button>
+        </div>
     </div>
 
-    <p id="lobby-msg" style="color: #5F6368; font-size: 1.1rem; margin-bottom: 40px;">선생님이 퀴즈를 오픈할 때까지 기다려주세요.</p>
-    
-    <div id="student-start-area" style="display:none; margin-bottom: 32px;">
-        <button class="btn-blue" style="width: 100%; padding: 20px; font-size: 1.3rem;" onclick="startStudentQuiz()">🚀 퀴즈 시작하기</button>
+    <div id="student-lobby-controls" class="box" style="display:none;">
+        <p id="lobby-msg" style="font-size: 1.1rem; font-weight: 600; color: #5F6368; margin-top: 0;">우측 하단의 준비 버튼을 눌러주세요.</p>
+        <button id="btn-ready-toggle" class="btn-blue" style="width: 100%; font-size: 1.2rem; padding: 16px;" onclick="toggleReady()">준비하기</button>
     </div>
-    <div id="user-list"></div>
-    <button class="btn-red" onclick="leaveRoom()" style="margin-top: 32px;">나가기</button>
+
+    <div class="box">
+        <h3 style="margin-top:0; font-size: 1rem; color: #5F6368;">참여 인원</h3>
+        <div id="user-list"></div>
+    </div>
+    <button class="btn-dark" onclick="leaveRoom()" style="width: 100%;">강의실 나가기</button>
 </div>
 
 <div id="view-class" class="view">
-    <div style="font-weight: 700; color: #5F6368; text-align: left; margin-bottom: 16px;">문제 <span id="current-q-num" style="color: var(--primary);">1</span> / <span id="total-q-num"></span></div>
+    <div style="font-weight: 700; color: #5F6368; text-align: left;">문제 <span id="current-q-num" style="color: var(--primary);">1</span> / <span id="total-q-num"></span> (<span id="current-q-score"></span>점)</div>
     <div id="problem-area"></div>
     <div class="choice-grid">
         <div id="wrong-x-overlay">❌</div>
@@ -155,41 +172,47 @@
         <button class="choice-btn c3" id="btn-c3" onclick="submitChoice(3)"></button>
     </div>
     <div class="timer-wrapper">
-        <div class="timer-bar-bg"><div class="timer-bar-fill" id="rope-ui"></div></div>
-        <div class="timer-info">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: #5F6368;">
             <span>남은 시간</span>
-            <span id="timer-sec-ui">0s</span>
+            <span id="timer-sec-ui">0초</span>
         </div>
+        <div class="timer-bar-bg"><div class="timer-bar-fill" id="rope-ui"></div></div>
     </div>
 </div>
 
 <div id="view-progress" class="view">
-    <h2>📊 진행 현황</h2>
-    <div id="teacher-progress-controls" style="display:none; text-align: right; margin-bottom: 20px;">
-        <button class="btn-red" onclick="resetRoom()" style="background: #FEECEB; color: #D93025; border: 1px solid #F6C8C5;">방 초기화</button>
+    <h2>📊 실시간 진행 현황</h2>
+    <div style="text-align: right; margin-bottom: 16px;">
+        <button class="btn-red" onclick="resetRoom()" style="padding: 10px 16px; font-size: 0.9rem;">방 강제 초기화</button>
     </div>
-
-    <div class="progress-board" id="progress-board"></div>
-    <div id="teacher-result-area" style="display:none; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border);">
+    <div class="box" style="padding: 16px;">
+        <div class="progress-board" id="progress-board"></div>
+    </div>
+    <div class="box" id="teacher-result-area" style="display:none; background: #E8F0FE; border-color: #D2E3FC;">
+        <p style="color: var(--primary); font-weight: bold; margin-top: 0;">모든 학생이 풀이를 완료했습니다.</p>
         <button class="btn-blue" style="width: 100%; font-size: 1.2rem;" onclick="triggerResults()">🏆 결과 발표하기</button>
     </div>
 </div>
 
 <div id="view-ended" class="view">
-    <h2 style="font-size: 2.5rem; margin-top: 40px;">🏁 수고하셨습니다!</h2>
-    <p style="color: #5F6368; font-size: 1.2rem; margin-top: 24px;">모든 문제를 풀었습니다.<br>선생님이 결과를 발표할 때까지 잠시만 기다려 주세요.</p>
+    <h2>🏁 수고하셨습니다!</h2>
+    <div class="result-summary-box">
+        총 <span id="end-total">0</span>문제 중 <span id="end-correct">0</span>문제를 맞혔습니다.<br>
+        최종 획득 점수는 <span id="end-score" style="color: var(--red);">0</span>점 입니다.
+    </div>
+    <p style="color: #5F6368; font-weight: 600;">선생님이 전체 결과를 발표할 때까지 잠시 대기해 주세요.</p>
 </div>
 
 <div id="view-results" class="view">
-    <h2>🏆 최종 순위</h2>
+    <h2>🏆 최종 순위 발표</h2>
     <div class="podium-container" id="podium-area"></div>
     <div class="table-container">
         <table>
-            <thead><tr><th>순위</th><th>이름</th><th>정답</th><th>정답률</th></tr></thead>
+            <thead><tr><th>순위</th><th>닉네임</th><th>맞힌 개수</th><th>총 점수</th></tr></thead>
             <tbody id="result-tbody"></tbody>
         </table>
     </div>
-    <button class="btn-red" onclick="leaveRoom()" style="width: 100%; margin-top: 32px;">종료하고 나가기</button>
+    <button class="btn-dark" onclick="leaveRoom()" style="width: 100%; margin-top: 24px;">종료하고 나가기</button>
 </div>
 
 <script type="module">
@@ -197,9 +220,9 @@
     import { getDatabase, ref, set, onValue, push, remove, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     /* ==========================================================
-       [본인의 파이어베이스 설정을 아래에 입력하십시오]
+       [파이어베이스 설정]
        ========================================================== */
-     const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyD1YUdjxb-a9nMog4OVOkg8W9UyvrQ6NSk",
   authDomain: "ai-math-quiz2026.firebaseapp.com",
   databaseURL: "https://ai-math-quiz2026-default-rtdb.firebaseio.com/",
@@ -213,7 +236,7 @@
     const app = initializeApp(firebaseConfig); const db = getDatabase(app);
     const userColors = ['#1A73E8', '#D93025', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043', '#9E9E9E'];
     
-    let isTeacher = false, selectedRole = null, currentRoom = "", myName = "선생님", myKey = "", questionCount = 0, quizDataCache = null, myCurrentIdx = 0, timerInterval = null;
+    let isTeacher = false, selectedRole = null, currentRoom = "", myName = "", myKey = "", questionCount = 0, quizDataCache = null, myCurrentIdx = 0, timerInterval = null, amIReady = false;
 
     window.showView = (id) => { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); };
 
@@ -233,7 +256,7 @@
     window.verifyPwd = () => {
         if(document.getElementById('teacher-pwd').value === 'abcd') {
             document.getElementById('password-area').style.display = 'none'; enableRole('teacher');
-        } else alert("비밀번호가 틀렸습니다.");
+        } else alert("비밀번호가 일치하지 않습니다.");
     };
 
     function enableRole(role) {
@@ -243,32 +266,43 @@
             document.getElementById('student-inputs-area').style.display = 'none';
             document.getElementById('teacher-entry-options').style.display = 'block';
             document.getElementById('teacher-set-selection').style.display = 'block';
-            document.getElementById('btn-join').innerText = "방 생성하기";
+            document.getElementById('btn-join').innerText = "방 생성하고 입장";
             loadQuizSets();
         } else {
             document.getElementById('student-inputs-area').style.display = 'block';
             document.getElementById('teacher-entry-options').style.display = 'none';
             document.getElementById('teacher-set-selection').style.display = 'none';
-            document.getElementById('btn-join').innerText = "참여하기";
+            document.getElementById('btn-join').innerText = "방 입장하기";
         }
     }
 
+    // 퀴즈 제작 로직 (배점 입력 추가)
     window.addQuestionInput = () => {
-        const id = questionCount++; const div = document.createElement('div'); div.className = 'quiz-item';
-        div.style.background = "#fff"; div.style.border = "1px solid #DADCE0"; div.style.padding = "24px"; div.style.borderRadius = "16px"; div.style.marginBottom = "16px"; div.style.textAlign = "left";
-        div.innerHTML = `<strong style="display:block;margin-bottom:12px;color:var(--primary)">문제 ${id + 1}</strong><textarea class="q-text" rows="2" placeholder="문제를 입력하세요 (LaTeX 가능)"></textarea>
-            <input type="number" class="q-time" placeholder="제한시간(초)" value="30" style="width:120px; text-align:center;"> 초
-            <div class="opt-container" style="margin-top:16px">${[0,1,2,3].map(i => `<div style="display:flex;align-items:center;margin-bottom:8px"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''} style="width:20px;margin-right:12px"> <input type="text" class="q-opt" placeholder="보기 ${i+1}" style="margin-bottom:0; text-align:left;"></div>`).join('')}</div>`;
+        const id = questionCount++; const div = document.createElement('div'); div.className = 'quiz-item-box';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <strong style="color:var(--primary); font-size:1.1rem;">문제 ${id + 1}</strong>
+                <div style="display:flex; gap:8px;">
+                    <input type="number" class="q-time" placeholder="초" value="30" style="width:70px; margin:0; padding:8px;">
+                    <input type="number" class="q-score" placeholder="배점" value="10" style="width:70px; margin:0; padding:8px;">
+                </div>
+            </div>
+            <textarea class="q-text" rows="2" placeholder="문제 내용 (LaTeX 수식 지원)"></textarea>
+            <div class="opt-container" style="margin-top:12px">
+                ${[0,1,2,3].map(i => `<div style="display:flex; align-items:center; margin-bottom:8px"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''} style="width:20px; margin-right:8px; margin-bottom:0;"> <input type="text" class="q-opt" placeholder="보기 ${i+1}" style="margin-bottom:0; text-align:left; padding:10px;"></div>`).join('')}
+            </div>`;
         document.getElementById('quiz-questions-input').appendChild(div);
     };
 
     window.saveQuizSet = () => {
         const title = document.getElementById('quiz-set-title').value;
-        const questions = Array.from(document.querySelectorAll('.quiz-item')).map((item, idx) => ({
+        const questions = Array.from(document.querySelectorAll('.quiz-item-box')).map((item, idx) => ({
             text: item.querySelector('.q-text').value, options: Array.from(item.querySelectorAll('.q-opt')).map(o => o.value),
-            answer: parseInt(item.querySelector(`input[name="correct_${idx}"]:checked`).value), timeLimit: parseInt(item.querySelector('.q-time').value) || 30
+            answer: parseInt(item.querySelector(`input[name="correct_${idx}"]:checked`).value), 
+            timeLimit: parseInt(item.querySelector('.q-time').value) || 30,
+            score: parseInt(item.querySelector('.q-score').value) || 10
         })).filter(q => q.text && q.options[0]);
-        if(!title || !questions.length) return alert("제목과 내용을 입력하세요.");
+        if(!title || !questions.length) return alert("제목과 내용을 확인하세요.");
         push(ref(db, `quizSets`), { title, questions }).then(() => { alert("저장 완료"); loadQuizSets(); });
     };
 
@@ -278,54 +312,106 @@
             sel.innerHTML = ""; lst.innerHTML = "";
             if(snap.val()) Object.entries(snap.val()).forEach(([id, s]) => {
                 sel.innerHTML += `<option value="${id}">${s.title}</option>`;
-                lst.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><span>${s.title}</span> <button onclick="deleteQuizSet('${id}')" style="background:#FEECEB; color:#D93025; padding:4px 12px; font-size:0.85rem; margin:0;">삭제</button></div>`;
+                lst.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;"><span>${s.title} (${s.questions.length}문제)</span> <button onclick="deleteQuizSet('${id}')" style="background:#FEECEB; color:#D93025; padding:6px 12px; margin:0; font-size:0.85rem;">삭제</button></div>`;
             });
         });
     };
     window.deleteQuizSet = (id) => remove(ref(db, `quizSets/${id}`));
 
+    // 입장 로직
     window.handleEntry = () => {
-        currentRoom = document.getElementById('input-room').value; if(!currentRoom) return alert("방 번호를 입력하십시오.");
+        currentRoom = document.getElementById('input-room').value; if(!currentRoom) return alert("방 번호 누락");
         if(isTeacher) {
-            const setId = document.getElementById('select-quiz-set').value; if(!setId) return alert("세트를 선택하십시오.");
+            const setId = document.getElementById('select-quiz-set').value; if(!setId) return alert("퀴즈 세트 미선택");
             onValue(ref(db, `quizSets/${setId}`), (snap) => {
                 quizDataCache = snap.val(); set(ref(db, `rooms/${currentRoom}`), { status: 'lobby', quizData: quizDataCache });
                 showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom; 
-                
-                // 교사 전용 컨트롤 패널 노출
                 document.getElementById('teacher-lobby-controls').style.display = 'block';
-                document.getElementById('teacher-progress-controls').style.display = 'block';
-                document.getElementById('lobby-msg').style.display = 'none';
-
-                startTeacherSync();
+                startTeacherLobbySync();
             }, { onlyOnce: true });
         } else {
-            myName = document.getElementById('input-name').value; if(!myName) return alert("닉네임을 입력하십시오.");
+            myName = document.getElementById('input-name').value; if(!myName) return alert("닉네임 누락");
             const uRef = push(ref(db, `rooms/${currentRoom}/users`)); myKey = uRef.key;
             onDisconnect(ref(db, `rooms/${currentRoom}/users/${myKey}`)).remove();
-            set(uRef, { name: myName, currentIdx: -1, correct: 0 }); 
-            showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom; startStudentSync();
+            // 학생 초기 데이터: 점수 0, 준비 안됨
+            set(uRef, { name: myName, currentIdx: -1, correct: 0, score: 0, isReady: false }); 
+            showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom; 
+            document.getElementById('student-lobby-controls').style.display = 'block';
+            startStudentSync();
+        }
+    };
+
+    // 학생 준비 토글
+    window.toggleReady = () => {
+        amIReady = !amIReady;
+        const btn = document.getElementById('btn-ready-toggle');
+        update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { isReady: amIReady });
+        if(amIReady) {
+            btn.innerText = "준비 완료 (대기 중)";
+            btn.style.background = "var(--green)";
+            document.getElementById('lobby-msg').innerText = "선생님이 시작할 때까지 대기하세요.";
+        } else {
+            btn.innerText = "준비하기";
+            btn.style.background = "var(--primary)";
+            document.getElementById('lobby-msg').innerText = "우측 하단의 준비 버튼을 눌러주세요.";
         }
     };
 
     window.openQuiz = () => { update(ref(db, `rooms/${currentRoom}`), { status: 'opened' }); };
-    window.triggerResults = () => update(ref(db, `rooms/${currentRoom}`), { status: 'results' });
+    window.triggerResults = () => { update(ref(db, `rooms/${currentRoom}`), { status: 'results' }); };
 
-    function startTeacherSync() {
-        // 교사는 상태가 변경되면 화면을 이동하도록 감지 로직 추가 (결과 발표 버튼 미작동 해결)
+    function startTeacherLobbySync() {
         onValue(ref(db, `rooms/${currentRoom}/status`), snap => {
-            const s = snap.val();
-            if(s === 'opened') {
+            if(snap.val() === 'opened') {
                 document.getElementById('teacher-lobby-controls').style.display = 'none';
-                showView('view-progress');
-            } else if(s === 'results') {
+                showView('view-progress'); startTeacherProgressSync();
+            } else if(snap.val() === 'results') {
                 showView('view-results'); renderResults();
             }
         });
 
         onValue(ref(db, `rooms/${currentRoom}/users`), snap => {
-            if(!quizDataCache) return; const users = snap.val() || {}; const totalQ = quizDataCache.questions.length;
+            const users = snap.val() || {};
+            const userKeys = Object.keys(users);
+            const totalUsers = userKeys.length;
             const lobbyList = document.getElementById('user-list'); lobbyList.innerHTML = "";
+            
+            let readyCount = 0;
+            
+            userKeys.forEach(k => {
+                const u = users[k];
+                if(u.isReady) readyCount++;
+                const color = userColors[k.charCodeAt(k.length-1)%userColors.length];
+                const readyClass = u.isReady ? 'ready' : '';
+                lobbyList.innerHTML += `
+                    <div class="user-circle-wrapper">
+                        <div class="user-circle ${readyClass}" style="background:${color};">${u.name}</div>
+                        <div class="ready-badge">✓</div>
+                    </div>`;
+            });
+
+            const statusText = document.getElementById('teacher-ready-status');
+            const openBtn = document.getElementById('btn-open-quiz');
+
+            if(totalUsers === 0) {
+                statusText.innerText = "접속한 학생이 없습니다.";
+                statusText.style.color = "var(--red)";
+                openBtn.disabled = true;
+            } else if (readyCount < totalUsers) {
+                statusText.innerText = `${totalUsers - readyCount}명의 학생이 아직 준비되지 않았습니다.`;
+                statusText.style.color = "var(--red)";
+                openBtn.disabled = true;
+            } else {
+                statusText.innerText = "모든 학생이 준비되었습니다.";
+                statusText.style.color = "var(--green)";
+                openBtn.disabled = false;
+            }
+        });
+    }
+
+    function startTeacherProgressSync() {
+        onValue(ref(db, `rooms/${currentRoom}/users`), snap => {
+            if(!quizDataCache) return; const users = snap.val() || {}; const totalQ = quizDataCache.questions.length;
             const board = document.getElementById('progress-board'); board.innerHTML = "";
             let cols = ""; for(let i=0; i<=totalQ; i++) cols += `<div class="prob-col" id="col-${i}"><h4>${i===totalQ?"완료":i+1+"번"}</h4></div>`;
             board.innerHTML = cols;
@@ -333,12 +419,7 @@
             
             Object.entries(users).forEach(([k, u]) => {
                 count++; const color = userColors[k.charCodeAt(k.length-1)%userColors.length];
-                
-                // 10글자가 모두 들어가는 큰 원 생성
-                const circle = `<div class="user-circle" style="background:${color};">${u.name}</div>`;
-                
-                lobbyList.innerHTML += circle;
-                
+                const circle = `<div class="user-circle" style="background:${color}; width:50px; height:50px; font-size:0.75rem;">${u.name}</div>`;
                 let tIdx = u.currentIdx === -1 ? 0 : u.currentIdx; if(tIdx>totalQ) tIdx=totalQ;
                 const colDiv = document.getElementById(`col-${tIdx}`); if(colDiv) colDiv.innerHTML += circle;
                 if(u.currentIdx < totalQ) finished = false;
@@ -349,21 +430,27 @@
 
     function startStudentSync() {
         onValue(ref(db, `rooms/${currentRoom}/status`), snap => {
-            const s = snap.val(); if(!s) return;
-            if(s === 'opened') { document.getElementById('lobby-msg').innerText = "오픈됨!"; document.getElementById('student-start-area').style.display = 'block'; }
+            const s = snap.val(); if(!s) { alert("방 정보 없음"); location.reload(); return; }
+            if(s === 'opened') { startStudentQuiz(); }
             else if(s === 'results') { showView('view-results'); renderResults(); }
         });
         onValue(ref(db, `rooms/${currentRoom}/quizData`), snap => { quizDataCache = snap.val(); if(quizDataCache) document.getElementById('total-q-num').innerText = quizDataCache.questions.length; });
     }
 
-    window.startStudentQuiz = () => { myCurrentIdx = 0; update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: 0 }); showView('view-class'); loadProblem(); };
+    function startStudentQuiz() { myCurrentIdx = 0; update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: 0 }); showView('view-class'); loadProblem(); }
 
     function loadProblem() {
         const totalQ = quizDataCache.questions.length;
-        if (myCurrentIdx >= totalQ) { update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: totalQ }); showView('view-ended'); return; }
+        if (myCurrentIdx >= totalQ) { 
+            update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: totalQ }); 
+            showEndSummary(); 
+            return; 
+        }
         update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: myCurrentIdx });
         document.getElementById('current-q-num').innerText = myCurrentIdx + 1;
-        const q = quizDataCache.questions[myCurrentIdx]; document.getElementById('problem-area').innerHTML = q.text;
+        const q = quizDataCache.questions[myCurrentIdx];
+        document.getElementById('current-q-score').innerText = q.score || 10;
+        document.getElementById('problem-area').innerHTML = q.text;
         [0,1,2,3].forEach(i => { const b = document.getElementById(`btn-c${i}`); b.innerText = q.options[i]||"-"; b.disabled=false; });
         MathJax.typesetPromise(); startVisualTimer(q.timeLimit);
     }
@@ -372,40 +459,59 @@
         clearInterval(timerInterval); document.getElementById('wrong-x-overlay').style.display = 'none';
         const fill = document.getElementById('rope-ui'), text = document.getElementById('timer-sec-ui');
         fill.style.transition = 'none'; fill.style.width = '100%'; setTimeout(() => { fill.style.transition = `width ${dur}s linear`; fill.style.width = '0%'; }, 50);
-        let left = dur; text.innerText = `${left}s`;
-        timerInterval = setInterval(() => { left--; text.innerText = `${left}s`; if(left <= 0) { clearInterval(timerInterval); explodeAndNext(); } }, 1000);
+        let left = dur; text.innerText = `${left}초`;
+        timerInterval = setInterval(() => { left--; text.innerText = `${left}초`; if(left <= 0) { clearInterval(timerInterval); explodeAndNext(); } }, 1000);
     }
 
     window.submitChoice = (idx) => {
         [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true); clearInterval(timerInterval);
-        if(quizDataCache.questions[myCurrentIdx].answer === idx) {
-            onValue(ref(db, `rooms/${currentRoom}/users/${myKey}/correct`), snap => { update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { correct: (snap.val() || 0) + 1 }); myCurrentIdx++; loadProblem(); }, {onlyOnce:true});
+        const q = quizDataCache.questions[myCurrentIdx];
+        if(q.answer === idx) {
+            onValue(ref(db, `rooms/${currentRoom}/users/${myKey}`), snap => { 
+                const u = snap.val() || {};
+                update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { correct: (u.correct || 0) + 1, score: (u.score || 0) + (q.score || 10) }); 
+                myCurrentIdx++; loadProblem(); 
+            }, {onlyOnce:true});
         } else { myCurrentIdx++; loadProblem(); }
     };
 
     function explodeAndNext() {
+        [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true);
         document.getElementById('wrong-x-overlay').style.display = 'flex';
         setTimeout(() => { myCurrentIdx++; loadProblem(); }, 500);
     }
 
+    function showEndSummary() {
+        showView('view-ended');
+        onValue(ref(db, `rooms/${currentRoom}/users/${myKey}`), snap => {
+            const u = snap.val() || {};
+            document.getElementById('end-total').innerText = quizDataCache.questions.length;
+            document.getElementById('end-correct').innerText = u.correct || 0;
+            document.getElementById('end-score').innerText = u.score || 0;
+        }, {onlyOnce:true});
+    }
+
     function renderResults() {
         onValue(ref(db, `rooms/${currentRoom}`), (snap) => {
-            const data = snap.val(); if(!data || !data.users) return; const total = data.quizData.questions.length;
-            let sMap = {}; Object.values(data.users).forEach(u => { const s = u.correct||0; if(!sMap[s]) sMap[s]=[]; sMap[s].push(u); });
-            let uScores = Object.keys(sMap).map(Number).sort((a,b)=>b-a);
-            const cStep = (u, cls, ic) => { const a = total>0?Math.round((u.correct||0)/total*100):0; return `<div class="step ${cls}"><div style="font-size:2rem; margin-bottom:8px;">${ic}</div><div class="step-name">${u.name}</div><div class="step-score">${u.correct||0}/${total}<br>(${a}%)</div></div>`; };
+            const data = snap.val(); if(!data || !data.users) return;
+            // 점수를 기준으로 정렬 맵 구성
+            let sMap = {}; Object.values(data.users).forEach(u => { const s = u.score || 0; if(!sMap[s]) sMap[s]=[]; sMap[s].push(u); });
+            let sortedScores = Object.keys(sMap).map(Number).sort((a,b)=>b-a);
+            
+            const cStep = (u, cls, ic) => { return `<div class="step ${cls}"><div style="font-size:2rem; margin-bottom:8px;">${ic}</div><div class="step-name">${u.name}</div><div class="step-score">${u.score||0}점<br>(${u.correct||0}개)</div></div>`; };
             let pHTML = ""; 
-            (sMap[uScores[0]]||[]).forEach(u=>pHTML+=cStep(u,'first','🥇'));
-            (sMap[uScores[1]]||[]).forEach(u=>pHTML+=cStep(u,'second','🥈'));
-            (sMap[uScores[2]]||[]).forEach(u=>pHTML+=cStep(u,'third','🥉'));
+            (sMap[sortedScores[0]]||[]).forEach(u=>pHTML+=cStep(u,'first','🥇'));
+            (sMap[sortedScores[1]]||[]).forEach(u=>pHTML+=cStep(u,'second','🥈'));
+            (sMap[sortedScores[2]]||[]).forEach(u=>pHTML+=cStep(u,'third','🥉'));
             document.getElementById('podium-area').innerHTML = pHTML;
+            
             const tb = document.getElementById('result-tbody'); tb.innerHTML = "";
-            uScores.forEach((s, idx) => { let rank = idx + 1; if(idx>2) sMap[s].forEach(u => tb.innerHTML += `<tr><td>${rank}위</td><td>${u.name}</td><td>${u.correct}</td><td>${total>0?Math.round(u.correct/total*100):0}%</td></tr>`); });
+            sortedScores.forEach((s, idx) => { let rank = idx + 1; if(idx>2) sMap[s].forEach(u => tb.innerHTML += `<tr><td>${rank}위</td><td>${u.name}</td><td>${u.correct}개</td><td>${u.score}점</td></tr>`); });
         }, {onlyOnce: true});
     }
 
-    window.resetRoom = () => confirm("방을 초기화하시겠습니까?") && remove(ref(db, `rooms/${currentRoom}`)).then(()=>location.reload());
-    window.leaveRoom = () => confirm("종료하고 나가시겠습니까?") && location.reload();
+    window.resetRoom = () => confirm("초기화하시겠습니까?") && remove(ref(db, `rooms/${currentRoom}`)).then(()=>location.reload());
+    window.leaveRoom = () => confirm("나가시겠습니까?") && location.reload();
 </script>
 </body>
 </html>
