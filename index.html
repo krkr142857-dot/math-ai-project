@@ -3,77 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HNU AI 수학 교실</title>
+    <title>AI 수학 방정식 퀴즈</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        :root { --primary: #007bff; --bg: #f4f7f9; }
+        :root { --primary: #007bff; --teacher: #2d3436; --bg: #f4f7f9; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
         .view { display: none; max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .active { display: block; }
         
         /* 대기실 동그라미 스타일 */
-        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
-        .user-circle { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; 
-                       display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold;
+        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; min-height: 100px; }
+        .user-circle { width: 70px; height: 70px; background: var(--primary); color: white; border-radius: 50%; 
+                       display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;
                        animation: bounce 2s infinite ease-in-out; overflow: hidden; padding: 5px; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* 교사 제어판 */
-        .admin-panel { background: #333; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; }
-        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin: 5px; }
+        /* 입력창 및 버튼 */
+        input { padding: 15px; width: 80%; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; }
+        button { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin: 5px; font-size: 1rem; }
         .btn-blue { background: var(--primary); color: white; }
+        .btn-teacher { background: var(--teacher); color: white; }
         .btn-red { background: #ff4757; color: white; }
 
-        /* 문제 화면 */
-        #problem-area { font-size: 2rem; margin: 40px 0; color: #222; }
-        .quiz-timer { font-size: 1.2rem; color: #ff4757; font-weight: bold; }
+        /* 문제 영역 */
+        #problem-area { font-size: 1.8rem; margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 15px; min-height: 100px; }
+        .badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; margin-bottom: 10px; background: #eee; }
     </style>
 </head>
 <body>
 
 <div id="view-entry" class="view active">
-    <h2>🎓 AI 방정식 클래스 입장</h2>
-    <input type="text" id="input-room" placeholder="방 번호 (예: 1234)" style="padding:15px; width:80%; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-    <br>
-    <input type="text" id="input-name" placeholder="닉네임 입력" style="padding:15px; width:80%; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;">
-    <br>
-    <button class="btn-blue" onclick="joinRoom()">수업 참여하기</button>
+    <h1 id="main-title">AI 수학 방정식 퀴즈</h1>
+    <div id="entry-form">
+        <p id="entry-desc">방 번호를 입력하여 수업에 참여하세요.</p>
+        <input type="text" id="input-room" placeholder="방 번호 (예: 1234)">
+        <br>
+        <div id="student-inputs">
+            <input type="text" id="input-name" placeholder="닉네임 입력">
+            <br>
+        </div>
+        <button id="btn-join" class="btn-blue" onclick="handleEntry()">수업 참여하기</button>
+    </div>
 </div>
 
 <div id="view-lobby" class="view">
-    <h2>🏫 대기실: <span id="display-room"></span>번 방</h2>
-    <p>친구들이 모일 때까지 잠시 기다려주세요!</p>
+    <h2>🏫 <span id="display-room"></span>번 강의실 대기중</h2>
+    <p>현재 접속한 학생들 (선생님이 시작할 때까지 기다리세요)</p>
     <div id="user-list"></div>
 </div>
 
 <div id="view-class" class="view">
-    <div id="quiz-header">
-        <span id="class-mode" style="background:#eee; padding:5px 10px; border-radius:5px;">개념 학습 모드</span>
-        <div id="timer-display" class="quiz-timer"></div>
-    </div>
-    <div id="problem-area">문제를 준비 중입니다...</div>
+    <div class="badge" id="class-mode">개념 학습 모드</div>
+    <div id="problem-area">선생님이 문제를 출제 중입니다...</div>
     <div id="answer-zone">
-        <input type="text" id="user-answer" placeholder="정답 입력" style="padding:15px; width:60%; border-radius:10px; border:1px solid #ddd;">
-        <button class="btn-blue" onclick="submitAnswer()">제출</button>
+        <input type="text" id="user-answer" placeholder="정답을 입력하세요">
+        <br>
+        <button class="btn-blue" onclick="submitAnswer()">정답 제출</button>
     </div>
 </div>
 
-<div id="teacher-controls" style="display:none; position:fixed; bottom:20px; left:20px; right:20px;">
-    <div class="admin-panel">
-        <strong>👨‍🏫 교사 제어:</strong>
-        <button onclick="changeState('lobby')">대기실로</button>
-        <button onclick="releaseProblem('basic')">기본문제 해금</button>
-        <button onclick="releaseProblem('hard')">심화문제 해금</button>
-        <button onclick="startQuizMode()">실시간 퀴즈 시작</button>
-        <button class="btn-red" onclick="resetRoom()">방 초기화</button>
-    </div>
+<div id="teacher-controls" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2d3436; padding:15px; color:white; z-index:1000;">
+    <strong>👨‍🏫 교사 마스터 제어:</strong>
+    <button class="btn-teacher" onclick="updateStatus('lobby')">대기실 이동</button>
+    <button class="btn-teacher" onclick="releaseProblem('basic')">기본문제(이차)</button>
+    <button class="btn-teacher" onclick="releaseProblem('hard')">심화문제(고차)</button>
+    <button class="btn-teacher" onclick="updateStatus('quiz')">퀴즈 모드 전환</button>
+    <button class="btn-red" onclick="resetRoom()">방 전체 초기화</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // 1. 본인의 Firebase 설정값을 여기에 넣으세요!
+    // 1. 본인의 Firebase 설정값을 여기에 꼭 넣으세요!
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -85,96 +87,136 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTeacher = urlParams.get('role') === 'teacher';
+    
     let currentRoom = "";
-    let myName = "";
+    let myName = "선생님";
     let myKey = "";
 
-    // 교사 여부 확인
-    const isTeacher = new URLSearchParams(window.location.search).get('role') === 'teacher';
-    if (isTeacher) document.getElementById('teacher-controls').style.display = 'block';
+    // [초기 세팅] 교사 모드일 경우 UI 변경
+    if (isTeacher) {
+        document.getElementById('main-title').innerText = "AI 수학 퀴즈 [관리자]";
+        document.getElementById('entry-desc').innerText = "생성할 방 번호를 입력하세요.";
+        document.getElementById('student-inputs').style.display = 'none';
+        document.getElementById('btn-join').innerText = "방 생성 및 수업 시작";
+        document.getElementById('btn-join').className = "btn-teacher";
+        document.getElementById('teacher-controls').style.display = 'block';
+    }
 
-    // [함수] 방 입장
-    window.joinRoom = function() {
+    // [입장 로직] 교사는 방 생성, 학생은 참여
+    window.handleEntry = function() {
         currentRoom = document.getElementById('input-room').value;
-        myName = document.getElementById('input-name').value;
-        if(!currentRoom || !myName) return alert("방 번호와 이름을 입력하세요!");
+        if(!currentRoom) return alert("방 번호를 입력하세요!");
 
-        const userRef = push(ref(db, `rooms/${currentRoom}/users`));
-        myKey = userRef.key;
-        set(userRef, { name: myName, score: 0, status: 'ready' });
-
-        document.getElementById('display-room').innerText = currentRoom;
-        showView('view-lobby');
-        startSync();
+        if(isTeacher) {
+            // 교사는 상태를 'lobby'로 초기화하며 방을 엽니다.
+            set(ref(db, `rooms/${currentRoom}/status`), 'lobby');
+            set(ref(db, `rooms/${currentRoom}/problem`), { text: "선생님이 준비 중입니다." });
+            document.getElementById('display-room').innerText = currentRoom;
+            showView('view-lobby');
+            startSync();
+        } else {
+            // 학생 참여 로직
+            myName = document.getElementById('input-name').value;
+            if(!myName) return alert("닉네임을 입력하세요!");
+            
+            const userRef = push(ref(db, `rooms/${currentRoom}/users`));
+            myKey = userRef.key;
+            set(userRef, { name: myName, timestamp: Date.now() });
+            
+            document.getElementById('display-room').innerText = currentRoom;
+            showView('view-lobby');
+            startSync();
+        }
     };
 
-    // [함수] 화면 전환
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
-    // [실시간 동기화 시작]
+    // [실시간 데이터 동기화]
     function startSync() {
-        // 1. 방 상태 감지 (대기/학습/퀴즈)
+        // 1. 방 상태(로비/학습/퀴즈) 감지
         onValue(ref(db, `rooms/${currentRoom}/status`), (snapshot) => {
-            const status = snapshot.val() || 'lobby';
+            const status = snapshot.val();
             if(status === 'lobby') showView('view-lobby');
             else showView('view-class');
-            document.getElementById('class-mode').innerText = status === 'quiz' ? "🔥 실시간 퀴즈!" : "📖 개념 학습";
+            
+            const modeBadge = document.getElementById('class-mode');
+            if(status === 'quiz') {
+                modeBadge.innerText = "🔥 실시간 퀴즈 경쟁 중!";
+                modeBadge.style.background = "#ff4757";
+                modeBadge.style.color = "white";
+            } else {
+                modeBadge.innerText = "📖 개념 학습 모드";
+                modeBadge.style.background = "#eee";
+                modeBadge.style.color = "#333";
+            }
         });
 
-        // 2. 유저 리스트 감지 (대기실 원 그리기)
+        // 2. 참여 학생 목록 감지 (동그라미 닉네임)
         onValue(ref(db, `rooms/${currentRoom}/users`), (snapshot) => {
-            const list = document.getElementById('user-list');
-            list.innerHTML = "";
+            const listDiv = document.getElementById('user-list');
+            listDiv.innerHTML = "";
             const data = snapshot.val();
             if(data) {
                 Object.values(data).forEach(user => {
-                    const div = document.createElement('div');
-                    div.className = 'user-circle';
-                    div.innerText = user.name;
-                    list.appendChild(div);
+                    const circle = document.createElement('div');
+                    circle.className = 'user-circle';
+                    circle.innerText = user.name;
+                    listDiv.appendChild(circle);
                 });
             }
         });
 
-        // 3. 문제 변경 감지
+        // 3. 문제 데이터 감지
         onValue(ref(db, `rooms/${currentRoom}/problem`), (snapshot) => {
             const prob = snapshot.val();
             if(prob) {
                 document.getElementById('problem-area').innerHTML = prob.text;
-                MathJax.typesetPromise();
+                MathJax.typesetPromise(); // 수식 렌더링
             }
         });
     }
 
-    // [교사용] 상태 제어 함수들
-    window.changeState = (s) => set(ref(db, `rooms/${currentRoom}/status`), s);
+    // [교사용 제어 함수]
+    window.updateStatus = (s) => set(ref(db, `rooms/${currentRoom}/status`), s);
     
-    window.releaseProblem = (lv) => {
-        const text = lv === 'basic' ? "\\( x^2 - 5x + 6 = 0 \\)" : "\\( x^3 - 6x^2 + 11x - 6 = 0 \\)";
+    window.releaseProblem = (type) => {
+        let pText = "";
+        if(type === 'basic') {
+            const a = Math.floor(Math.random() * 5) + 1;
+            pText = `\\( x^2 - ${a*5}x + ${a*6} = 0 \\)의 해를 구하시오.`;
+        } else {
+            pText = `\\( x^3 - 6x^2 + 11x - 6 = 0 \\)의 모든 근의 합을 구하시오.`;
+        }
         set(ref(db, `rooms/${currentRoom}/status`), 'learning');
-        set(ref(db, `rooms/${currentRoom}/problem`), { text: text + "의 해를 구하세요." });
-    };
-
-    window.startQuizMode = () => {
-        set(ref(db, `rooms/${currentRoom}/status`), 'quiz');
-        set(ref(db, `rooms/${currentRoom}/problem`), { text: "지금부터 퀴즈 시작! 문제를 기다리세요..." });
+        set(ref(db, `rooms/${currentRoom}/problem`), { text: pText });
     };
 
     window.resetRoom = () => {
-        if(confirm("정말 초기화할까요?")) remove(ref(db, `rooms/${currentRoom}`));
+        if(confirm("방의 모든 데이터(학생 목록 포함)를 초기화할까요?")) {
+            remove(ref(db, `rooms/${currentRoom}`));
+            location.reload();
+        }
     };
 
-    // [학생] 정답 제출
+    // [학생용 정답 제출]
     window.submitAnswer = function() {
         const ans = document.getElementById('user-answer').value;
-        push(ref(db, `rooms/${currentRoom}/results`), { name: myName, answer: ans, time: Date.now() });
-        alert("제출 완료!");
+        if(!ans) return alert("답을 입력하세요!");
+        
+        // 정답을 DB에 기록 (교사가 나중에 확인 가능)
+        push(ref(db, `rooms/${currentRoom}/results`), {
+            name: myName,
+            answer: ans,
+            timestamp: Date.now()
+        });
+        alert("제출되었습니다!");
         document.getElementById('user-answer').value = "";
     };
-
 </script>
 </body>
 </html>
