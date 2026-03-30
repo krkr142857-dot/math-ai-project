@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 수학 교실 - 실시간 방정식 퀴즈</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; text-align: center; background-color: #f8f9fa; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .teacher-zone { background: #e7f3ff; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; border: 2px solid #007bff; }
+        .quiz-card { margin-top: 20px; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+        #problem-text { font-size: 1.8rem; margin: 25px 0; min-height: 50px; color: #0056b3; }
+        button { padding: 12px 24px; font-size: 1rem; cursor: pointer; border: none; border-radius: 8px; transition: 0.3s; margin: 5px; }
+        .btn-main { background-color: #007bff; color: white; }
+        .btn-main:hover { background-color: #0056b3; }
+        input { padding: 12px; width: 60%; font-size: 1rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
+        .leaderboard { margin-top: 30px; text-align: left; }
+        .leaderboard h4 { border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+        .score-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI 방정식 마스터 🎓</h1>
+
+    <div id="teacher-view" class="teacher-zone">
+        <h4>👨‍🏫 교사 제어판</h4>
+        <button class="btn-main" onclick="sendProblem('quadratic')">이차방정식 출제</button>
+        <button class="btn-main" onclick="sendProblem('higher')">고차방정식 출제</button>
+        <button style="background:#dc3545; color:white;" onclick="resetScores()">점수 초기화</button>
+    </div>
+
+    <div class="quiz-card">
+        <div id="problem-text">교수님의 문제를 기다리고 있습니다...</div>
+        <div id="input-area">
+            <input type="text" id="answer-input" placeholder="정답을 입력하세요">
+            <br>
+            <button class="btn-main" onclick="submitAnswer()">정답 제출하기</button>
+        </div>
+    </div>
+
+    <div class="leaderboard">
+        <h4>🏆 실시간 랭킹 (누가 먼저 맞혔나?)</h4>
+        <div id="score-list">
+            <p style="color:gray;">아직 제출된 정답이 없습니다.</p>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push, remove, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // [중요] 여기에 본인의 파이어베이스 설정값을 붙여넣으세요!
+    const firebaseConfig = {
+        apiKey: "본인의_API_KEY",
+        authDomain: "본인의_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://본인의_PROJECT_ID.firebaseio.com",
+        projectId: "본인의_PROJECT_ID",
+        appId: "본인의_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 1. 역할 구분
+    const isTeacher = new URLSearchParams(window.location.search).get('role') === 'teacher';
+    if (isTeacher) document.getElementById('teacher-view').style.display = 'block';
+
+    // 2. [교사] 문제 출제 함수
+    window.sendProblem = function(type) {
+        let question = "";
+        if (type === 'quadratic') {
+            const a = Math.floor(Math.random() * 3) + 1;
+            question = `\\( x^2 - ${a*7}x + ${a*12} = 0 \\)의 두 근의 합은?`;
+        } else {
+            question = `\\( x^3 - 1 = 0 \\)의 실근은 무엇인가?`;
+        }
+        set(ref(db, 'currentQuestion'), { text: question, time: Date.now() });
+    };
+
+    // 3. [교사] 점수 초기화
+    window.resetScores = function() {
+        if(confirm("모든 랭킹 데이터를 지울까요?")) remove(ref(db, 'results'));
+    };
+
+    // 4. [학생] 정답 제출
+    window.submitAnswer = function() {
+        const ans = document.getElementById('answer-input').value;
+        if(!ans) return alert("답을 적어주세요!");
+        
+        const name = prompt("이름을 입력하세요 (순위에 표시됩니다)");
+        if(!name) return;
+
+        push(ref(db, 'results'), {
+            name: name,
+            answer: ans,
+            timestamp: Date.now()
+        });
+        alert("제출되었습니다! 랭킹을 확인하세요.");
+        document.getElementById('answer-input').value = "";
+    };
+
+    // 5. [실시간 동기화] 문제 수신
+    onValue(ref(db, 'currentQuestion'), (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            document.getElementById('problem-text').innerHTML = data.text;
+            MathJax.typesetPromise();
+        }
+    });
+
+    // 6. [실시간 동기화] 랭킹 업데이트
+    onValue(ref(db, 'results'), (snapshot) => {
+        const scoreList = document.getElementById('score-list');
+        scoreList.innerHTML = "";
+        const data = snapshot.val();
+        if (data) {
+            // 시간순 정렬하여 목록 생성
+            const items = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'score-item';
+                div.innerHTML = `<span><strong>${index + 1}위</strong> ${item.name}</span> <span>답: ${item.answer}</span>`;
+                scoreList.appendChild(div);
+            });
+        } else {
+            scoreList.innerHTML = '<p style="color:gray;">아직 제출된 정답이 없습니다.</p>';
+        }
+    });
+</script>
+
+</body>
+</html>
