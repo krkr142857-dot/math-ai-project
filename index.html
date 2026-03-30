@@ -3,134 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 수학 교실 - 실시간 방정식 퀴즈</title>
+    <title>HNU AI 수학 교실</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; text-align: center; background-color: #f8f9fa; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .teacher-zone { background: #e7f3ff; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; border: 2px solid #007bff; }
-        .quiz-card { margin-top: 20px; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
-        #problem-text { font-size: 1.8rem; margin: 25px 0; min-height: 50px; color: #0056b3; }
-        button { padding: 12px 24px; font-size: 1rem; cursor: pointer; border: none; border-radius: 8px; transition: 0.3s; margin: 5px; }
-        .btn-main { background-color: #007bff; color: white; }
-        .btn-main:hover { background-color: #0056b3; }
-        input { padding: 12px; width: 60%; font-size: 1rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
-        .leaderboard { margin-top: 30px; text-align: left; }
-        .leaderboard h4 { border-bottom: 2px solid #007bff; padding-bottom: 5px; }
-        .score-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        :root { --primary: #007bff; --bg: #f4f7f9; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
+        .view { display: none; max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .active { display: block; }
+        
+        /* 대기실 동그라미 스타일 */
+        #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+        .user-circle { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; 
+                       display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold;
+                       animation: bounce 2s infinite ease-in-out; overflow: hidden; padding: 5px; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* 교사 제어판 */
+        .admin-panel { background: #333; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin: 5px; }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-red { background: #ff4757; color: white; }
+
+        /* 문제 화면 */
+        #problem-area { font-size: 2rem; margin: 40px 0; color: #222; }
+        .quiz-timer { font-size: 1.2rem; color: #ff4757; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>AI 방정식 마스터 🎓</h1>
+<div id="view-entry" class="view active">
+    <h2>🎓 AI 방정식 클래스 입장</h2>
+    <input type="text" id="input-room" placeholder="방 번호 (예: 1234)" style="padding:15px; width:80%; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+    <br>
+    <input type="text" id="input-name" placeholder="닉네임 입력" style="padding:15px; width:80%; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;">
+    <br>
+    <button class="btn-blue" onclick="joinRoom()">수업 참여하기</button>
+</div>
 
-    <div id="teacher-view" class="teacher-zone">
-        <h4>👨‍🏫 교사 제어판</h4>
-        <button class="btn-main" onclick="sendProblem('quadratic')">이차방정식 출제</button>
-        <button class="btn-main" onclick="sendProblem('higher')">고차방정식 출제</button>
-        <button style="background:#dc3545; color:white;" onclick="resetScores()">점수 초기화</button>
+<div id="view-lobby" class="view">
+    <h2>🏫 대기실: <span id="display-room"></span>번 방</h2>
+    <p>친구들이 모일 때까지 잠시 기다려주세요!</p>
+    <div id="user-list"></div>
+</div>
+
+<div id="view-class" class="view">
+    <div id="quiz-header">
+        <span id="class-mode" style="background:#eee; padding:5px 10px; border-radius:5px;">개념 학습 모드</span>
+        <div id="timer-display" class="quiz-timer"></div>
     </div>
-
-    <div class="quiz-card">
-        <div id="problem-text">교수님의 문제를 기다리고 있습니다...</div>
-        <div id="input-area">
-            <input type="text" id="answer-input" placeholder="정답을 입력하세요">
-            <br>
-            <button class="btn-main" onclick="submitAnswer()">정답 제출하기</button>
-        </div>
+    <div id="problem-area">문제를 준비 중입니다...</div>
+    <div id="answer-zone">
+        <input type="text" id="user-answer" placeholder="정답 입력" style="padding:15px; width:60%; border-radius:10px; border:1px solid #ddd;">
+        <button class="btn-blue" onclick="submitAnswer()">제출</button>
     </div>
+</div>
 
-    <div class="leaderboard">
-        <h4>🏆 실시간 랭킹 (누가 먼저 맞혔나?)</h4>
-        <div id="score-list">
-            <p style="color:gray;">아직 제출된 정답이 없습니다.</p>
-        </div>
+<div id="teacher-controls" style="display:none; position:fixed; bottom:20px; left:20px; right:20px;">
+    <div class="admin-panel">
+        <strong>👨‍🏫 교사 제어:</strong>
+        <button onclick="changeState('lobby')">대기실로</button>
+        <button onclick="releaseProblem('basic')">기본문제 해금</button>
+        <button onclick="releaseProblem('hard')">심화문제 해금</button>
+        <button onclick="startQuizMode()">실시간 퀴즈 시작</button>
+        <button class="btn-red" onclick="resetRoom()">방 초기화</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, push, remove, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // [중요] 여기에 본인의 파이어베이스 설정값을 붙여넣으세요!
+    // 1. 본인의 Firebase 설정값을 여기에 넣으세요!
     const firebaseConfig = {
-        apiKey: "본인의_API_KEY",
-        authDomain: "본인의_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://본인의_PROJECT_ID.firebaseio.com",
-        projectId: "본인의_PROJECT_ID",
-        appId: "본인의_APP_ID"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+        projectId: "YOUR_PROJECT",
+        appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 1. 역할 구분
+    let currentRoom = "";
+    let myName = "";
+    let myKey = "";
+
+    // 교사 여부 확인
     const isTeacher = new URLSearchParams(window.location.search).get('role') === 'teacher';
-    if (isTeacher) document.getElementById('teacher-view').style.display = 'block';
+    if (isTeacher) document.getElementById('teacher-controls').style.display = 'block';
 
-    // 2. [교사] 문제 출제 함수
-    window.sendProblem = function(type) {
-        let question = "";
-        if (type === 'quadratic') {
-            const a = Math.floor(Math.random() * 3) + 1;
-            question = `\\( x^2 - ${a*7}x + ${a*12} = 0 \\)의 두 근의 합은?`;
-        } else {
-            question = `\\( x^3 - 1 = 0 \\)의 실근은 무엇인가?`;
-        }
-        set(ref(db, 'currentQuestion'), { text: question, time: Date.now() });
+    // [함수] 방 입장
+    window.joinRoom = function() {
+        currentRoom = document.getElementById('input-room').value;
+        myName = document.getElementById('input-name').value;
+        if(!currentRoom || !myName) return alert("방 번호와 이름을 입력하세요!");
+
+        const userRef = push(ref(db, `rooms/${currentRoom}/users`));
+        myKey = userRef.key;
+        set(userRef, { name: myName, score: 0, status: 'ready' });
+
+        document.getElementById('display-room').innerText = currentRoom;
+        showView('view-lobby');
+        startSync();
     };
 
-    // 3. [교사] 점수 초기화
-    window.resetScores = function() {
-        if(confirm("모든 랭킹 데이터를 지울까요?")) remove(ref(db, 'results'));
-    };
+    // [함수] 화면 전환
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
-    // 4. [학생] 정답 제출
-    window.submitAnswer = function() {
-        const ans = document.getElementById('answer-input').value;
-        if(!ans) return alert("답을 적어주세요!");
-        
-        const name = prompt("이름을 입력하세요 (순위에 표시됩니다)");
-        if(!name) return;
-
-        push(ref(db, 'results'), {
-            name: name,
-            answer: ans,
-            timestamp: Date.now()
+    // [실시간 동기화 시작]
+    function startSync() {
+        // 1. 방 상태 감지 (대기/학습/퀴즈)
+        onValue(ref(db, `rooms/${currentRoom}/status`), (snapshot) => {
+            const status = snapshot.val() || 'lobby';
+            if(status === 'lobby') showView('view-lobby');
+            else showView('view-class');
+            document.getElementById('class-mode').innerText = status === 'quiz' ? "🔥 실시간 퀴즈!" : "📖 개념 학습";
         });
-        alert("제출되었습니다! 랭킹을 확인하세요.");
-        document.getElementById('answer-input').value = "";
+
+        // 2. 유저 리스트 감지 (대기실 원 그리기)
+        onValue(ref(db, `rooms/${currentRoom}/users`), (snapshot) => {
+            const list = document.getElementById('user-list');
+            list.innerHTML = "";
+            const data = snapshot.val();
+            if(data) {
+                Object.values(data).forEach(user => {
+                    const div = document.createElement('div');
+                    div.className = 'user-circle';
+                    div.innerText = user.name;
+                    list.appendChild(div);
+                });
+            }
+        });
+
+        // 3. 문제 변경 감지
+        onValue(ref(db, `rooms/${currentRoom}/problem`), (snapshot) => {
+            const prob = snapshot.val();
+            if(prob) {
+                document.getElementById('problem-area').innerHTML = prob.text;
+                MathJax.typesetPromise();
+            }
+        });
+    }
+
+    // [교사용] 상태 제어 함수들
+    window.changeState = (s) => set(ref(db, `rooms/${currentRoom}/status`), s);
+    
+    window.releaseProblem = (lv) => {
+        const text = lv === 'basic' ? "\\( x^2 - 5x + 6 = 0 \\)" : "\\( x^3 - 6x^2 + 11x - 6 = 0 \\)";
+        set(ref(db, `rooms/${currentRoom}/status`), 'learning');
+        set(ref(db, `rooms/${currentRoom}/problem`), { text: text + "의 해를 구하세요." });
     };
 
-    // 5. [실시간 동기화] 문제 수신
-    onValue(ref(db, 'currentQuestion'), (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            document.getElementById('problem-text').innerHTML = data.text;
-            MathJax.typesetPromise();
-        }
-    });
+    window.startQuizMode = () => {
+        set(ref(db, `rooms/${currentRoom}/status`), 'quiz');
+        set(ref(db, `rooms/${currentRoom}/problem`), { text: "지금부터 퀴즈 시작! 문제를 기다리세요..." });
+    };
 
-    // 6. [실시간 동기화] 랭킹 업데이트
-    onValue(ref(db, 'results'), (snapshot) => {
-        const scoreList = document.getElementById('score-list');
-        scoreList.innerHTML = "";
-        const data = snapshot.val();
-        if (data) {
-            // 시간순 정렬하여 목록 생성
-            const items = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
-            items.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'score-item';
-                div.innerHTML = `<span><strong>${index + 1}위</strong> ${item.name}</span> <span>답: ${item.answer}</span>`;
-                scoreList.appendChild(div);
-            });
-        } else {
-            scoreList.innerHTML = '<p style="color:gray;">아직 제출된 정답이 없습니다.</p>';
-        }
-    });
+    window.resetRoom = () => {
+        if(confirm("정말 초기화할까요?")) remove(ref(db, `rooms/${currentRoom}`));
+    };
+
+    // [학생] 정답 제출
+    window.submitAnswer = function() {
+        const ans = document.getElementById('user-answer').value;
+        push(ref(db, `rooms/${currentRoom}/results`), { name: myName, answer: ans, time: Date.now() });
+        alert("제출 완료!");
+        document.getElementById('user-answer').value = "";
+    };
+
 </script>
-
 </body>
 </html>
