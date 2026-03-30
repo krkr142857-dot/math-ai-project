@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 수학 퀴즈</title>
+    <title>AI Math Quiz</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -22,7 +22,7 @@
         .role-wrapper { display: flex; gap: 20px; justify-content: center; margin-bottom: 24px; }
         .role-card { flex: 1; padding: 24px; border: 2px solid var(--border); border-radius: 16px; cursor: pointer; transition: 0.2s; background: white; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; }
         .role-card img { width: 56px; height: 56px; opacity: 0.8; }
-        .role-card span { font-weight: 600; font-size: 1.05rem; color: #5F6368; }
+        .role-card span { font-weight: 700; font-size: 1.2rem; color: #5F6368; }
         .role-card.selected { border-color: var(--primary); background: #E8F0FE; }
         .role-card.selected span { color: var(--primary); }
 
@@ -81,17 +81,17 @@
 <body>
 
 <div id="view-entry" class="view active">
-    <h1>AI 수학 퀴즈</h1>
+    <h1>AI Math Quiz</h1>
     
     <div class="box">
         <div class="role-wrapper">
             <div class="role-card" id="card-student" onclick="selectRole('student')">
                 <img src="https://cdn-icons-png.flaticon.com/512/3449/3449692.png" alt="Student">
-                <span>학생용 접속</span>
+                <span>Student</span>
             </div>
             <div class="role-card" id="card-teacher" onclick="selectRole('teacher')">
                 <img src="https://cdn-icons-png.flaticon.com/512/1995/1995539.png" alt="Teacher">
-                <span>교사용 제어</span>
+                <span>Teacher</span>
             </div>
         </div>
         <button class="btn-dark" onclick="applyRole()" style="width: 100%; margin: 0;">역할 선택 완료</button>
@@ -104,7 +104,7 @@
 
     <div id="action-area" class="box disabled-section">
         <div id="teacher-entry-options" style="display:none; margin-bottom: 20px;">
-            <button class="btn-green" onclick="showView('view-quiz-manager')" style="width: 100%;">📝 퀴즈 세트 신규 제작 / 관리</button>
+            <button class="btn-green" onclick="showView('view-quiz-manager')" style="width: 100%;">📝 퀴즈 세트 제작 / 관리</button>
         </div>
         <div id="entry-form">
             <input type="text" id="input-room" placeholder="접속할 방 번호 입력">
@@ -121,13 +121,13 @@
 </div>
 
 <div id="view-quiz-manager" class="view">
-    <h2>📝 퀴즈 세트 제작</h2>
+    <h2>📝 퀴즈 세트 관리</h2>
     <div class="box">
         <input type="text" id="quiz-set-title" placeholder="퀴즈 세트의 제목을 입력하세요">
         <div id="quiz-questions-input"></div>
         <div style="text-align: right; margin-top: 16px;">
             <button class="btn-blue" onclick="addQuestionInput()">+ 새 문제 추가</button>
-            <button class="btn-green" onclick="saveQuizSet()">서버에 저장</button>
+            <button class="btn-green" onclick="saveQuizSet()">저장</button>
         </div>
     </div>
     <div class="box">
@@ -222,7 +222,7 @@
     /* ==========================================================
        [파이어베이스 설정]
        ========================================================== */
-        const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyD1YUdjxb-a9nMog4OVOkg8W9UyvrQ6NSk",
   authDomain: "ai-math-quiz2026.firebaseapp.com",
   databaseURL: "https://ai-math-quiz2026-default-rtdb.firebaseio.com/",
@@ -237,6 +237,8 @@
     const userColors = ['#1A73E8', '#D93025', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043', '#9E9E9E'];
     
     let isTeacher = false, selectedRole = null, currentRoom = "", myName = "", myKey = "", questionCount = 0, quizDataCache = null, myCurrentIdx = 0, timerInterval = null, amIReady = false;
+    let globalQuizSets = {};
+    let editingSetId = null;
 
     window.showView = (id) => { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); };
 
@@ -276,20 +278,27 @@
         }
     }
 
-    // 퀴즈 제작 로직 (배점 입력 추가)
-    window.addQuestionInput = () => {
+    // 퀴즈 제작 및 편집 로직
+    window.addQuestionInput = (qData = null) => {
         const id = questionCount++; const div = document.createElement('div'); div.className = 'quiz-item-box';
+        
+        const text = qData ? qData.text : '';
+        const time = qData ? (qData.timeLimit || 30) : 30;
+        const score = qData ? (qData.score || 10) : 10;
+        const opts = qData ? qData.options : ['', '', '', ''];
+        const ans = qData ? qData.answer : 0;
+
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                 <strong style="color:var(--primary); font-size:1.1rem;">문제 ${id + 1}</strong>
-                <div style="display:flex; gap:8px;">
-                    <input type="number" class="q-time" placeholder="초" value="30" style="width:70px; margin:0; padding:8px;">
-                    <input type="number" class="q-score" placeholder="배점" value="10" style="width:70px; margin:0; padding:8px;">
+                <div style="display:flex; gap:16px; font-size:0.9rem; color:#5F6368; align-items:center;">
+                    <label style="display:flex; align-items:center; gap:6px;">시간(초) <input type="number" class="q-time" value="${time}" style="width:60px; margin:0; padding:8px; border-radius:8px;"></label>
+                    <label style="display:flex; align-items:center; gap:6px;">배점(점) <input type="number" class="q-score" value="${score}" style="width:60px; margin:0; padding:8px; border-radius:8px;"></label>
                 </div>
             </div>
-            <textarea class="q-text" rows="2" placeholder="문제 내용 (LaTeX 수식 지원)"></textarea>
+            <textarea class="q-text" rows="2" placeholder="문제 내용 (LaTeX 수식 지원)">${text}</textarea>
             <div class="opt-container" style="margin-top:12px">
-                ${[0,1,2,3].map(i => `<div style="display:flex; align-items:center; margin-bottom:8px"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''} style="width:20px; margin-right:8px; margin-bottom:0;"> <input type="text" class="q-opt" placeholder="보기 ${i+1}" style="margin-bottom:0; text-align:left; padding:10px;"></div>`).join('')}
+                ${[0,1,2,3].map(i => `<div style="display:flex; align-items:center; margin-bottom:8px"><input type="radio" name="correct_${id}" value="${i}" ${i===ans?'checked':''} style="width:20px; margin-right:8px; margin-bottom:0;"> <input type="text" class="q-opt" placeholder="보기 ${i+1}" value="${opts[i]}" style="margin-bottom:0; text-align:left; padding:10px;"></div>`).join('')}
             </div>`;
         document.getElementById('quiz-questions-input').appendChild(div);
     };
@@ -302,17 +311,47 @@
             timeLimit: parseInt(item.querySelector('.q-time').value) || 30,
             score: parseInt(item.querySelector('.q-score').value) || 10
         })).filter(q => q.text && q.options[0]);
+        
         if(!title || !questions.length) return alert("제목과 내용을 확인하세요.");
-        push(ref(db, `quizSets`), { title, questions }).then(() => { alert("저장 완료"); loadQuizSets(); });
+        
+        const payload = { title, questions };
+        const savePromise = editingSetId ? set(ref(db, `quizSets/${editingSetId}`), payload) : push(ref(db, `quizSets`), payload);
+        
+        savePromise.then(() => { 
+            alert("저장 완료");
+            document.getElementById('quiz-set-title').value = '';
+            document.getElementById('quiz-questions-input').innerHTML = '';
+            questionCount = 0;
+            editingSetId = null;
+            loadQuizSets(); 
+        });
+    };
+
+    window.editQuizSet = (id) => {
+        const setData = globalQuizSets[id];
+        if(!setData) return;
+        editingSetId = id;
+        document.getElementById('quiz-set-title').value = setData.title;
+        document.getElementById('quiz-questions-input').innerHTML = '';
+        questionCount = 0;
+        setData.questions.forEach(q => addQuestionInput(q));
     };
 
     window.loadQuizSets = () => {
         onValue(ref(db, `quizSets`), (snap) => {
+            globalQuizSets = snap.val() || {};
             const sel = document.getElementById('select-quiz-set'), lst = document.getElementById('saved-quiz-list');
             sel.innerHTML = ""; lst.innerHTML = "";
-            if(snap.val()) Object.entries(snap.val()).forEach(([id, s]) => {
+            Object.entries(globalQuizSets).forEach(([id, s]) => {
                 sel.innerHTML += `<option value="${id}">${s.title}</option>`;
-                lst.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;"><span>${s.title} (${s.questions.length}문제)</span> <button onclick="deleteQuizSet('${id}')" style="background:#FEECEB; color:#D93025; padding:6px 12px; margin:0; font-size:0.85rem;">삭제</button></div>`;
+                lst.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;">
+                        <span>${s.title} (${s.questions.length}문제)</span> 
+                        <div>
+                            <button onclick="editQuizSet('${id}')" style="background:var(--primary); color:white; padding:6px 12px; margin:0 4px 0 0; font-size:0.85rem; border-radius:8px;">수정</button>
+                            <button onclick="deleteQuizSet('${id}')" style="background:#FEECEB; color:#D93025; padding:6px 12px; margin:0; font-size:0.85rem; border-radius:8px;">삭제</button>
+                        </div>
+                    </div>`;
             });
         });
     };
@@ -333,7 +372,6 @@
             myName = document.getElementById('input-name').value; if(!myName) return alert("닉네임 누락");
             const uRef = push(ref(db, `rooms/${currentRoom}/users`)); myKey = uRef.key;
             onDisconnect(ref(db, `rooms/${currentRoom}/users/${myKey}`)).remove();
-            // 학생 초기 데이터: 점수 0, 준비 안됨
             set(uRef, { name: myName, currentIdx: -1, correct: 0, score: 0, isReady: false }); 
             showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom; 
             document.getElementById('student-lobby-controls').style.display = 'block';
@@ -341,7 +379,6 @@
         }
     };
 
-    // 학생 준비 토글
     window.toggleReady = () => {
         amIReady = !amIReady;
         const btn = document.getElementById('btn-ready-toggle');
@@ -494,7 +531,6 @@
     function renderResults() {
         onValue(ref(db, `rooms/${currentRoom}`), (snap) => {
             const data = snap.val(); if(!data || !data.users) return;
-            // 점수를 기준으로 정렬 맵 구성
             let sMap = {}; Object.values(data.users).forEach(u => { const s = u.score || 0; if(!sMap[s]) sMap[s]=[]; sMap[s].push(u); });
             let sortedScores = Object.keys(sMap).map(Number).sort((a,b)=>b-a);
             
