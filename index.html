@@ -6,15 +6,12 @@
     <title>AI 수학 객관식 퀴즈 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        /* 깔끔하고 모던한 플랫 디자인 컬러 팔레트 */
         :root { --primary: #3b82f6; --teacher: #1e293b; --bg: #f8fafc; --red: #ef4444; --blue: #3b82f6; --yellow: #f59e0b; --green: #10b981; --gray: #94a3b8; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; color: #334155; }
         
-        /* 뷰 컨테이너 간소화 */
         .view { display: none; max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
         .active { display: block; }
         
-        /* 공통 요소 */
         input, select, textarea { padding: 14px; width: 100%; margin-bottom: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; box-sizing: border-box; background: #f8fafc; }
         input:focus, textarea:focus { outline: none; border-color: var(--primary); }
         button { padding: 14px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin: 4px; font-size: 1rem; transition: background 0.2s; }
@@ -25,11 +22,9 @@
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
 
-        /* 대기실 유저 리스트 */
         #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 24px 0; }
         .user-circle { width: 70px; height: 70px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; overflow-wrap: break-word; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* 퀴즈 영역 */
         .quiz-item { border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 24px; border-radius: 12px; text-align: left; background: white; }
         .opt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
         .opt-row input[type="radio"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
@@ -38,7 +33,6 @@
 
         #problem-area { font-size: 1.6rem; margin: 24px 0; padding: 30px; background: #f1f5f9; border-radius: 12px; border-left: 6px solid var(--primary); min-height: 80px; text-align: left; }
         
-        /* 선택지 및 타임아웃 X 오버레이 */
         .choice-area-wrapper { position: relative; margin-top: 20px; }
         .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .choice-btn { height: 90px; font-size: 1.2rem; color: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -46,7 +40,6 @@
         
         #wrong-x-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); z-index: 10; justify-content: center; align-items: center; font-size: 6rem; color: var(--red); font-weight: bold; border-radius: 10px; }
 
-        /* 타이머 UI 및 미니 진동 애니메이션 */
         .timer-container { display: flex; align-items: center; margin-top: 30px; padding: 12px 20px; background: #f1f5f9; border-radius: 10px; }
         .bomb-icon { font-size: 1.8rem; margin-right: 12px; display: inline-block; }
         .shake-small { animation: shake-small 0.4s infinite; }
@@ -55,12 +48,10 @@
         .rope-burn { height: 100%; background: var(--yellow); width: 100%; transform-origin: left; }
         .timer-text { font-size: 1.1rem; font-weight: bold; margin-left: 16px; width: 45px; color: #475569; }
 
-        /* 교사용 현황판 */
         .progress-board { display: flex; gap: 16px; overflow-x: auto; padding: 20px 0; min-height: 180px; align-items: flex-start; }
         .prob-col { flex: 0 0 110px; background: #f8fafc; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .prob-col h4 { margin: 0; font-size: 0.95rem; color: #475569; }
 
-        /* 시상대 및 결과 표 (동점자 다수 처리 구조) */
         .podium-container { display: flex; align-items: flex-end; justify-content: center; min-height: 240px; gap: 8px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; overflow-x: auto; flex-wrap: nowrap; }
         .step { width: 95px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-radius: 8px 8px 0 0; padding: 12px 4px; text-align: center; flex-shrink: 0; }
         .step.first { height: 190px; background: #fbbf24; }
@@ -189,7 +180,7 @@
   messagingSenderId: "184710615493",
   appId: "1:184710615493:web:7a86fa99270f51ccc37bac"
 };
-
+    
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const isTeacher = new URLSearchParams(window.location.search).get('role') === 'teacher';
@@ -199,7 +190,6 @@
     let quizDataCache = null;
     let myCurrentIdx = 0;
     let timerInterval = null;
-    let explosionTimeout = null;
 
     window.showView = (id) => {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -362,7 +352,7 @@
     }
 
     function startVisualTimer(duration) {
-        clearInterval(timerInterval); clearTimeout(explosionTimeout);
+        clearInterval(timerInterval);
         document.getElementById('bomb-ui').classList.remove('shake-small');
         document.getElementById('wrong-x-overlay').style.display = 'none';
 
@@ -373,17 +363,20 @@
         setTimeout(() => { rope.style.transition = `width ${duration}s linear`; rope.style.width = '0%'; }, 50);
 
         let timeLeft = duration; text.innerText = `${timeLeft}s`;
+        
+        // setTimeout 대신 setInterval 내부에서 직접 시간을 통제하여 동기화 오류 방지
         timerInterval = setInterval(() => {
             timeLeft--; text.innerText = `${timeLeft}s`;
-            if(timeLeft <= 0) clearInterval(timerInterval);
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                explodeAndNext();
+            }
         }, 1000);
-
-        explosionTimeout = setTimeout(() => { explodeAndNext(); }, duration * 1000);
     }
 
     window.submitChoice = (idx) => {
         [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true);
-        clearInterval(timerInterval); clearTimeout(explosionTimeout);
+        clearInterval(timerInterval);
         
         if(quizDataCache.questions[myCurrentIdx].answer === idx) {
             onValue(ref(db, `rooms/${currentRoom}/users/${myKey}/correct`), snap => {
@@ -399,6 +392,7 @@
         [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true);
         document.getElementById('bomb-ui').classList.add('shake-small');
         document.getElementById('wrong-x-overlay').style.display = 'flex';
+        
         setTimeout(() => {
             document.getElementById('bomb-ui').classList.remove('shake-small');
             document.getElementById('wrong-x-overlay').style.display = 'none';
@@ -406,7 +400,10 @@
         }, 500);
     }
 
-    function nextProblem() { myCurrentIdx++; loadProblem(); }
+    function nextProblem() { 
+        myCurrentIdx++; 
+        loadProblem(); 
+    }
 
     window.renderResults = () => {
         onValue(ref(db, `rooms/${currentRoom}`), (snap) => {
