@@ -111,14 +111,11 @@
 
 <div id="view-results" class="view">
     <h2>🏆 최종 순위 발표 🏆</h2>
-    <div class="podium-container" id="podium-area">
-        </div>
-    
+    <div class="podium-container" id="podium-area"></div>
     <div class="table-container">
         <table>
             <thead><tr><th>순위</th><th>이름</th><th>정답 수</th><th>정답률</th></tr></thead>
-            <tbody id="result-tbody">
-                </tbody>
+            <tbody id="result-tbody"></tbody>
         </table>
     </div>
     <button class="btn-red" onclick="leaveRoom()" style="margin-top:20px;">수업 종료하고 나가기</button>
@@ -136,7 +133,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, push, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-     // 1. 본인의 Firebase 설정값을 여기에 꼭 넣으세요!
+      // 1. 본인의 Firebase 설정값을 여기에 꼭 넣으세요!
     const firebaseConfig = {
   apiKey: "AIzaSyD1YUdjxb-a9nMog4OVOkg8W9UyvrQ6NSk",
   authDomain: "ai-math-quiz2026.firebaseapp.com",
@@ -146,7 +143,7 @@
   messagingSenderId: "184710615493",
   appId: "1:184710615493:web:7a86fa99270f51ccc37bac"
 };
-    
+
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
@@ -156,22 +153,11 @@
     let currentProbIdx = -1;
     let totalQuestionsCount = 0;
 
-    if (isTeacher) {
-        document.getElementById('teacher-entry-options').style.display = 'block';
-        document.getElementById('student-inputs-area').style.display = 'none';
-        document.getElementById('teacher-set-selection').style.display = 'block';
-        document.getElementById('btn-join').innerText = "방 생성하기";
-        document.getElementById('teacher-controls').style.display = 'block';
-        loadQuizSets();
-        addQuestionInput(); 
-    }
-
     window.showView = (id) => {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     };
 
-    // --- 퀴즈 제작 및 관리 ---
     window.addQuestionInput = () => {
         const id = questionCount++;
         const div = document.createElement('div');
@@ -207,7 +193,7 @@
         push(ref(db, `quizSets`), { title, questions }).then(() => { alert("저장 완료!"); loadQuizSets(); });
     };
 
-    function loadQuizSets() {
+    window.loadQuizSets = function() {
         onValue(ref(db, `quizSets`), (snap) => {
             const select = document.getElementById('select-quiz-set');
             const list = document.getElementById('saved-quiz-list');
@@ -217,10 +203,10 @@
                 list.innerHTML += `<div style="margin-bottom:8px;">• ${s.title} <button onclick="deleteQuizSet('${id}')" style="padding:2px 5px; background:#ff4757; color:white; border-radius:4px;">삭제</button></div>`;
             });
         });
-    }
+    };
+    
     window.deleteQuizSet = (id) => remove(ref(db, `quizSets/${id}`));
 
-    // --- 입장 및 동기화 ---
     window.handleEntry = function() {
         currentRoom = document.getElementById('input-room').value;
         if(!currentRoom) return alert("방 번호 입력!");
@@ -240,25 +226,24 @@
             const uRef = push(ref(db, `rooms/${currentRoom}/users`));
             myKey = uRef.key;
             onDisconnect(ref(db, `rooms/${currentRoom}/users/${myKey}`)).remove();
-            set(uRef, { name: myName, correctCount: 0 }); // 초기 점수 0 세팅
+            set(uRef, { name: myName, correctCount: 0 }); 
             showView('view-lobby'); startSync();
         }
     };
 
-    function setupQuizNav(qs) {
+    window.setupQuizNav = function(qs) {
         const nav = document.getElementById('quiz-navigation'); nav.innerHTML = "";
         qs.forEach((q, i) => {
             const b = document.createElement('button'); b.innerText = `${i+1}번`; b.className = "btn-blue";
             b.onclick = () => {
-                // 문제 배포 시 타이머 시작 신호도 함께 보냄
                 set(ref(db, `rooms/${currentRoom}/status`), 'class');
                 set(ref(db, `rooms/${currentRoom}/problem`), { text: q.text, options: q.options, timeLimit: q.timeLimit, idx: i, timestamp: Date.now() });
             };
             nav.appendChild(b);
         });
-    }
+    };
 
-    function startSync() {
+    window.startSync = function() {
         onValue(ref(db, `rooms/${currentRoom}/status`), (snap) => {
             const s = snap.val();
             if(!s && !isTeacher) { alert("방이 존재하지 않습니다."); location.reload(); return; }
@@ -271,7 +256,7 @@
             }
             else if(s === 'results') {
                 showView('view-results');
-                renderResults(); // 결과 화면 렌더링
+                renderResults(); 
             }
         });
 
@@ -285,22 +270,19 @@
             });
         });
 
-        // 문제 및 타이머 동기화
         onValue(ref(db, `rooms/${currentRoom}/problem`), (snap) => {
             const p = snap.val();
             if(p) {
                 currentProbIdx = p.idx;
                 document.getElementById('problem-area').innerHTML = p.text;
                 
-                // 보기 버튼 활성화 및 텍스트 적용
                 [0,1,2,3].forEach(i => {
                     const btn = document.getElementById(`btn-c${i}`);
                     btn.innerText = p.options[i] || "보기 없음";
-                    btn.disabled = false; // 버튼 다시 활성화
+                    btn.disabled = false; 
                 });
                 MathJax.typesetPromise();
 
-                // 타이머 로직 시작
                 clearInterval(timerInterval);
                 let timeLeft = p.timeLimit;
                 const timerDisplay = document.getElementById('timer-display');
@@ -313,34 +295,30 @@
                     if(timeLeft <= 0) {
                         clearInterval(timerInterval);
                         timerDisplay.innerText = "⏱ 시간 초과!";
-                        [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true); // 버튼 비활성화
+                        [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true); 
                     }
                 }, 1000);
             }
         });
-    }
+    };
 
     window.updateStatus = (s) => set(ref(db, `rooms/${currentRoom}/status`), s);
     window.leaveRoom = () => { if(confirm("퇴장하시겠습니까?")) { if(myKey) remove(ref(db, `rooms/${currentRoom}/users/${myKey}`)); location.reload(); }};
     window.resetRoom = () => { if(confirm("초기화?")) remove(ref(db, `rooms/${currentRoom}`)).then(() => location.reload()); };
     
-    // 학생의 정답 제출 및 서버 검증
     window.submitChoice = (idx) => {
         if(currentProbIdx === -1) return;
-        [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true); // 중복 선택 방지
+        [0,1,2,3].forEach(i => document.getElementById(`btn-c${i}`).disabled = true); 
         
-        // 정답 여부 체크를 위해 quizData 가져오기 (1회성)
         onValue(ref(db, `rooms/${currentRoom}/quizData/questions/${currentProbIdx}`), (snap) => {
             const questionData = snap.val();
             const isCorrect = (questionData.answer === idx);
             
-            // 결과 기록
             push(ref(db, `rooms/${currentRoom}/results`), { name: myName, probIdx: currentProbIdx, choice: idx, isCorrect: isCorrect, time: Date.now() });
-            alert(isCorrect ? "선택 완료! (서버에 기록되었습니다)" : "선택 완료! (서버에 기록되었습니다)");
+            alert(isCorrect ? "선택 완료!" : "선택 완료!");
         }, { onlyOnce: true });
     };
 
-    // --- 퀴즈 종료 및 결과 집계 로직 ---
     window.endQuizProcess = () => {
         if(confirm("문제를 모두 풀었습니까? 퀴즈를 종료하고 대기 화면으로 이동합니다.")) {
             updateStatus('ended');
@@ -348,11 +326,10 @@
     };
 
     window.showResultsToAll = () => {
-        updateStatus('results'); // 모든 클라이언트가 view-results로 이동
+        updateStatus('results'); 
     };
 
-    function renderResults() {
-        // 방에 있는 모든 사용자와 퀴즈 정보를 가져와 집계
+    window.renderResults = function() {
         onValue(ref(db, `rooms/${currentRoom}`), (snap) => {
             const roomData = snap.val();
             if(!roomData || !roomData.users) return;
@@ -360,12 +337,10 @@
             const totalQs = roomData.quizData.questions.length;
             let userScores = {};
 
-            // 사용자 객체 초기화
             Object.values(roomData.users).forEach(u => {
                 userScores[u.name] = { name: u.name, correct: 0 };
             });
 
-            // 제출된 결과 바탕으로 정답 수 누적
             if(roomData.results) {
                 Object.values(roomData.results).forEach(r => {
                     if(r.isCorrect && userScores[r.name]) {
@@ -374,10 +349,8 @@
                 });
             }
 
-            // 배열로 변환 후 정답 수 기준 내림차순 정렬
             let sortedUsers = Object.values(userScores).sort((a, b) => b.correct - a.correct);
 
-            // 시상대(Podium) 렌더링 - 2등(왼쪽), 1등(가운데), 3등(오른쪽) 순서로 DOM 배치
             const podiumArea = document.getElementById('podium-area');
             podiumArea.innerHTML = "";
             
@@ -403,12 +376,11 @@
                 </div>
             `;
 
-            // 하단 표 렌더링
             const tbody = document.getElementById('result-tbody');
             tbody.innerHTML = "";
             sortedUsers.forEach((u, index) => {
                 const rank = index + 1;
-                const accuracy = Math.round((u.correct / totalQs) * 100);
+                const accuracy = totalQs > 0 ? Math.round((u.correct / totalQs) * 100) : 0;
                 tbody.innerHTML += `
                     <tr>
                         <td>${rank}위</td>
@@ -419,6 +391,16 @@
                 `;
             });
         }, { onlyOnce: true });
+    };
+
+    if (isTeacher) {
+        document.getElementById('teacher-entry-options').style.display = 'block';
+        document.getElementById('student-inputs-area').style.display = 'none';
+        document.getElementById('teacher-set-selection').style.display = 'block';
+        document.getElementById('btn-join').innerText = "방 생성하기";
+        document.getElementById('teacher-controls').style.display = 'block';
+        window.loadQuizSets();
+        window.addQuestionInput(); 
     }
 </script>
 </body>
