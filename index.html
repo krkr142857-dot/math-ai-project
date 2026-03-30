@@ -3,56 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 수학 객관식 퀴즈 시스템</title>
+    <title>AI 수학 퀴즈</title>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
-        :root { --primary: #3b82f6; --teacher: #1e293b; --bg: #f8fafc; --red: #ef4444; --blue: #3b82f6; --yellow: #f59e0b; --green: #10b981; --border: #e2e8f0; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; color: #334155; }
-        .view { display: none; max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        :root { --primary: #1A73E8; --teacher: #202124; --bg: #F8F9FA; --red: #D93025; --yellow: #FBBC04; --green: #188038; --border: #DADCE0; --card-bg: #FFFFFF; }
+        
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #3C4043; -webkit-font-smoothing: antialiased; }
+        
+        /* 메인 컨테이너 */
+        .view { display: none; max-width: 800px; margin: 40px auto; background: var(--card-bg); padding: 48px; border-radius: 24px; box-shadow: 0 1px 3px rgba(60,64,67,0.3), 0 4px 8px rgba(60,64,67,0.15); border: none; }
         .active { display: block; }
-        .role-selection-wrapper { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
-        .role-card { flex: 1; padding: 25px; border: 2px solid var(--border); border-radius: 16px; cursor: pointer; transition: 0.3s; background: white; display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; }
-        .role-card img { width: 80px; height: 80px; object-fit: contain; }
-        .role-card span { font-weight: bold; font-size: 1.1rem; color: #64748b; }
-        .role-card.selected { border-color: var(--primary); background: #eff6ff; }
+
+        h1, h2 { color: #202124; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 32px; }
+
+        /* 역할 선택 카드 */
+        .role-wrapper { display: flex; gap: 24px; justify-content: center; margin-bottom: 32px; }
+        .role-card { 
+            flex: 1; padding: 32px; border: 2px solid var(--border); border-radius: 20px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); background: white; 
+            display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative;
+        }
+        .role-card img { width: 64px; height: 64px; opacity: 0.8; }
+        .role-card span { font-weight: 600; font-size: 1.1rem; color: #5F6368; }
+        .role-card:hover { border-color: var(--primary); background: #F4F7FE; transform: translateY(-4px); }
+        .role-card.selected { border-color: var(--primary); background: #E8F0FE; }
         .role-card.selected span { color: var(--primary); }
-        .role-card.selected::after { content: '✓'; position: absolute; top: 10px; right: 15px; color: var(--primary); font-size: 1.5rem; font-weight: bold; }
-        .disabled-section { filter: blur(3px); opacity: 0.4; pointer-events: none; transition: 0.4s; }
-        .enabled-section { filter: blur(0); opacity: 1; pointer-events: auto; }
-        input, select, textarea { padding: 14px; width: 100%; margin-bottom: 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 1rem; box-sizing: border-box; background: #f8fafc; }
-        button { padding: 14px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; margin: 4px; font-size: 1rem; transition: 0.2s; }
+        .role-card.selected::after { content: '✓'; position: absolute; top: 16px; right: 20px; color: var(--primary); font-size: 1.4rem; font-weight: bold; }
+
+        /* 상태 제어 */
+        .disabled-section { filter: grayscale(1) blur(2px); opacity: 0.4; pointer-events: none; transition: 0.5s; }
+        .enabled-section { filter: none; opacity: 1; pointer-events: auto; }
+
+        /* 입력 및 버튼 */
+        input, select, textarea { padding: 16px; width: 100%; margin-bottom: 16px; border-radius: 12px; border: 1px solid var(--border); font-size: 1rem; box-sizing: border-box; background: #fff; transition: border 0.2s; }
+        input:focus { border: 2px solid var(--primary); outline: none; }
+        button { padding: 16px 28px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.2s; }
         .btn-blue { background: var(--primary); color: white; }
+        .btn-blue:hover { background: #1765CC; box-shadow: 0 1px 2px rgba(66,133,244,0.3), 0 1px 3px rgba(66,133,244,0.15); }
         .btn-dark { background: var(--teacher); color: white; }
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
-        #problem-area { font-size: 1.6rem; margin: 24px 0; padding: 30px; background: #f1f5f9; border-radius: 12px; border-left: 8px solid var(--primary); text-align: left; }
-        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; position: relative; }
-        .choice-btn { height: 90px; font-size: 1.2rem; color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .c0 { background: #ff5f5f; } .c1 { background: #5f99ff; } .c2 { background: #ffbc5f; } .c3 { background: #5fff8b; }
-        #wrong-x-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 10; justify-content: center; align-items: center; font-size: 5rem; color: var(--red); font-weight: bold; }
-        .timer-container { display: flex; align-items: center; margin-top: 35px; padding: 15px 25px; background: #f1f5f9; border-radius: 15px; }
-        .bomb-icon { font-size: 2rem; margin-right: 15px; }
-        .shake-small { animation: shake 0.3s infinite; }
-        @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-3px);} 75% {transform:translateX(3px);} }
-        .rope-track { flex: 1; height: 10px; background: #cbd5e1; border-radius: 5px; overflow: hidden; }
-        .rope-burn { height: 100%; background: var(--yellow); width: 100%; transform-origin: left; }
-        .timer-text { font-size: 1.1rem; font-weight: bold; margin-left: 16px; width: 45px; }
-        .progress-board { display: flex; gap: 15px; overflow-x: auto; padding: 20px 0; min-height: 180px; }
-        .prob-col { flex: 0 0 100px; background: #f8fafc; border-radius: 12px; padding: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; }
-        .podium-container { display: flex; align-items: flex-end; justify-content: center; min-height: 250px; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
-        .step { width: 100px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-radius: 12px 12px 0 0; padding: 15px 5px; text-align: center; }
-        .step.first { height: 200px; background: #fbbf24; }
-        .step.second { height: 150px; background: #94a3b8; }
-        .step.third { height: 110px; background: #b45309; }
-        .table-container { max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; } th, td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+
+        /* 퀴즈 풀이 영역 */
+        #problem-area { font-size: 1.8rem; margin: 32px 0; padding: 40px; background: #F1F3F4; border-radius: 20px; text-align: left; line-height: 1.5; color: #202124; position: relative; }
+        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; position: relative; }
+        .choice-btn { height: 100px; font-size: 1.2rem; color: white; border-radius: 16px; box-shadow: none; border: none; }
+        /* 미리캔버스 스타일 파스텔/선명 컬러 */
+        .c0 { background: #E21B3C; } .c1 { background: #1368CE; } .c2 { background: #D89E00; } .c3 { background: #26890C; }
+        #wrong-x-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 10; justify-content: center; align-items: center; font-size: 6rem; color: var(--red); font-weight: bold; border-radius: 16px; }
+
+        /* 모던 타이머 (Progress Bar) */
+        .timer-wrapper { margin-top: 40px; }
+        .timer-bar-bg { width: 100%; height: 8px; background: #E8EAED; border-radius: 4px; overflow: hidden; position: relative; }
+        .timer-bar-fill { height: 100%; background: var(--primary); width: 100%; transform-origin: left; transition: width linear; }
+        .timer-info { display: flex; justify-content: space-between; margin-top: 12px; font-weight: 600; color: #5F6368; }
+
+        /* 진행판 및 시상대 */
+        .progress-board { display: flex; gap: 16px; overflow-x: auto; padding: 24px 0; }
+        .prob-col { flex: 0 0 110px; background: #F8F9FA; border-radius: 16px; padding: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .prob-col h4 { margin: 0; font-size: 0.9rem; color: #70757A; }
+        
+        .podium-container { display: flex; align-items: flex-end; justify-content: center; min-height: 280px; gap: 12px; margin-bottom: 40px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+        .step { width: 120px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; color: white; border-radius: 20px 20px 8px 8px; padding: 20px 8px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .step.first { height: 220px; background: #FBBC04; order: 1; }
+        .step.second { height: 170px; background: #9AA0A6; order: 2; }
+        .step.third { height: 130px; background: #A5673F; order: 3; }
+        .step-name { font-weight: 700; margin-top: 8px; }
+        .step-score { font-size: 0.85rem; margin-top: 4px; opacity: 0.9; }
+
+        .table-container { border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #F8F9FA; padding: 16px; text-align: center; font-size: 0.9rem; color: #70757A; border-bottom: 1px solid var(--border); }
+        td { padding: 16px; text-align: center; border-bottom: 1px solid #F1F3F4; color: #3C4043; }
+
+        /* 하단 제어바 */
+        #teacher-controls { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 16px 40px; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
 <div id="view-entry" class="view active">
-    <h2 style="margin-bottom: 30px;">수학 객관식 퀴즈</h2>
-    <div class="role-selection-wrapper">
+    <h1>AI 수학 퀴즈</h1>
+    
+    <div class="role-wrapper">
         <div class="role-card" id="card-student" onclick="selectRole('student')">
             <img src="https://cdn-icons-png.flaticon.com/512/3449/3449692.png" alt="Student">
             <span>학생으로 참여</span>
@@ -62,24 +96,28 @@
             <span>교사로 관리</span>
         </div>
     </div>
-    <button class="btn-dark" id="btn-apply-role" onclick="applyRole()">선택 완료 및 설정</button>
-    <div id="password-area" style="display:none; margin: 20px 0;">
-        <input type="password" id="teacher-pwd" placeholder="관리자 비밀번호 입력" style="width: calc(100% - 100px);">
-        <button class="btn-blue" onclick="verifyPwd()">확인</button>
+
+    <button class="btn-dark" onclick="applyRole()" style="width: 100%; margin-bottom: 20px;">설정 완료</button>
+
+    <div id="password-area" style="display:none; margin-bottom: 24px;">
+        <input type="password" id="teacher-pwd" placeholder="관리자 비밀번호 (abcd)" style="width: calc(100% - 110px); margin-bottom: 0;">
+        <button class="btn-blue" onclick="verifyPwd()" style="width: 100px; margin: 0;">확인</button>
     </div>
-    <hr style="margin: 30px 0; border: 0; border-top: 1px solid var(--border);">
+
     <div id="action-area" class="disabled-section">
-        <div id="teacher-entry-options" style="display:none; margin-bottom: 20px;">
+        <div id="teacher-entry-options" style="display:none; margin-bottom: 24px;">
             <button class="btn-green" onclick="showView('view-quiz-manager')" style="width: 100%;">📝 퀴즈 세트 제작 및 관리</button>
         </div>
         <div id="entry-form">
             <input type="text" id="input-room" placeholder="방 번호를 입력하세요">
-            <div id="student-inputs-area"><input type="text" id="input-name" placeholder="닉네임 입력 (최대 10자)" maxlength="10"></div>
-            <div id="teacher-set-selection" style="display:none; text-align: left;">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">퀴즈 세트 선택</label>
-                <select id="select-quiz-set" style="margin-top: 5px;"></select>
+            <div id="student-inputs-area">
+                <input type="text" id="input-name" placeholder="닉네임 (최대 10자)" maxlength="10">
             </div>
-            <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin-top: 10px;">입장하기</button>
+            <div id="teacher-set-selection" style="display:none; text-align: left;">
+                <label style="font-size: 0.9rem; font-weight: 600; color: #5F6368; margin-left: 4px;">퀴즈 세트 선택</label>
+                <select id="select-quiz-set" style="margin-top: 8px;"></select>
+            </div>
+            <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin-top: 16px; font-size: 1.1rem;">입장하기</button>
         </div>
     </div>
 </div>
@@ -88,19 +126,27 @@
     <h2>📝 퀴즈 제작</h2>
     <input type="text" id="quiz-set-title" placeholder="퀴즈 세트 제목">
     <div id="quiz-questions-input"></div>
-    <div style="text-align: right;"><button class="btn-blue" onclick="addQuestionInput()">+ 문제 추가</button><button class="btn-green" onclick="saveQuizSet()">저장</button><button class="btn-dark" onclick="showView('view-entry')">뒤로</button></div>
-    <hr><div id="saved-quiz-list" style="text-align:left;"></div>
+    <div style="text-align: right; margin-top: 20px;">
+        <button class="btn-blue" onclick="addQuestionInput()">+ 문제 추가</button>
+        <button class="btn-green" onclick="saveQuizSet()">저장하기</button>
+        <button class="btn-dark" onclick="showView('view-entry')">돌아가기</button>
+    </div>
+    <hr style="margin: 40px 0; border: 0; border-top: 1px solid var(--border);">
+    <div id="saved-quiz-list" style="text-align: left;"></div>
 </div>
 
 <div id="view-lobby" class="view">
-    <h2 id="display-room-title">🏫 <span id="display-room"></span>번 강의실</h2>
-    <p id="lobby-msg">선생님이 퀴즈를 오픈할 때까지 기다려주세요.</p>
-    <div id="student-start-area" style="display:none; margin: 30px 0;"><button class="btn-blue" style="width:100%; font-size:1.3rem;" onclick="startStudentQuiz()">🚀 퀴즈 시작하기</button></div>
-    <div id="user-list"></div><button class="btn-red" onclick="leaveRoom()">나가기</button>
+    <h2 style="color: var(--primary);">🏫 <span id="display-room"></span>번 강의실</h2>
+    <p id="lobby-msg" style="color: #5F6368; font-size: 1.1rem; margin-bottom: 40px;">선생님이 퀴즈를 오픈할 때까지 기다려주세요.</p>
+    <div id="student-start-area" style="display:none; margin-bottom: 32px;">
+        <button class="btn-blue" style="width: 100%; padding: 20px; font-size: 1.3rem;" onclick="startStudentQuiz()">🚀 퀴즈 시작하기</button>
+    </div>
+    <div id="user-list"></div>
+    <button class="btn-red" onclick="leaveRoom()" style="margin-top: 32px; background: none; color: #70757A; text-decoration: underline;">나가기</button>
 </div>
 
 <div id="view-class" class="view">
-    <div style="text-align:left; font-weight:bold; color:#64748b;">문제 <span id="current-q-num">1</span> / <span id="total-q-num"></span></div>
+    <div style="font-weight: 700; color: #5F6368; text-align: left; margin-bottom: 16px;">문제 <span id="current-q-num" style="color: var(--primary);">1</span> / <span id="total-q-num"></span></div>
     <div id="problem-area"></div>
     <div class="choice-grid">
         <div id="wrong-x-overlay">❌</div>
@@ -109,26 +155,46 @@
         <button class="choice-btn c2" id="btn-c2" onclick="submitChoice(2)"></button>
         <button class="choice-btn c3" id="btn-c3" onclick="submitChoice(3)"></button>
     </div>
-    <div class="timer-container"><span class="bomb-icon" id="bomb-ui">💣</span><div class="rope-track"><div class="rope-burn" id="rope-ui"></div></div><span class="timer-text" id="timer-sec-ui">0s</span></div>
+    <div class="timer-wrapper">
+        <div class="timer-bar-bg"><div class="timer-bar-fill" id="rope-ui"></div></div>
+        <div class="timer-info">
+            <span>남은 시간</span>
+            <span id="timer-sec-ui">0s</span>
+        </div>
+    </div>
 </div>
 
 <div id="view-progress" class="view">
-    <h2 style="text-align:left;">📊 실시간 진행 현황</h2>
+    <h2 style="text-align: left;">📊 진행 현황</h2>
     <div class="progress-board" id="progress-board"></div>
-    <div id="teacher-result-area" style="display:none; margin-top:20px;"><button class="btn-blue" style="width:100%;" onclick="triggerResults()">🏆 결과 발표하기</button></div>
+    <div id="teacher-result-area" style="display:none; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border);">
+        <button class="btn-blue" style="width: 100%; font-size: 1.2rem;" onclick="triggerResults()">🏆 결과 발표하기</button>
+    </div>
 </div>
 
-<div id="view-ended" class="view"><h2>🏁 퀴즈 종료</h2><p>선생님이 결과를 발표할 때까지 대기해 주세요.</p></div>
+<div id="view-ended" class="view">
+    <h2 style="font-size: 2.5rem; margin-top: 40px;">🏁 수고하셨습니다!</h2>
+    <p style="color: #5F6368; font-size: 1.2rem; margin-top: 24px;">모든 문제를 풀었습니다.<br>선생님이 결과를 발표할 때까지 잠시만 기다려 주세요.</p>
+</div>
 
 <div id="view-results" class="view">
-    <h2>🏆 최종 순위 발표</h2>
+    <h2>🏆 최종 순위</h2>
     <div class="podium-container" id="podium-area"></div>
-    <div class="table-container"><table><thead><tr><th>순위</th><th>이름</th><th>정답</th><th>정답률</th></tr></thead><tbody id="result-tbody"></tbody></table></div>
-    <button class="btn-dark" onclick="leaveRoom()" style="width:100%; margin-top:20px;">종료하고 나가기</button>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>순위</th><th>이름</th><th>정답</th><th>정답률</th></tr></thead>
+            <tbody id="result-tbody"></tbody>
+        </table>
+    </div>
+    <button class="btn-dark" onclick="leaveRoom()" style="width: 100%; margin-top: 32px;">종료하고 나가기</button>
 </div>
 
-<div id="teacher-controls" style="display:none; position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid var(--border); padding:15px 25px; z-index:1000; justify-content:space-between; align-items:center;">
-    <strong>👨‍🏫 교사 제어 패널</strong><div><button class="btn-blue" id="btn-open-quiz" onclick="openQuiz()">퀴즈 오픈</button><button class="btn-red" onclick="resetRoom()">방 초기화</button></div>
+<div id="teacher-controls">
+    <strong>👨‍🏫 교사 제어 패널</strong>
+    <div>
+        <button class="btn-blue" id="btn-open-quiz" onclick="openQuiz()" style="margin-right: 12px;">퀴즈 오픈</button>
+        <button class="btn-red" onclick="resetRoom()" style="background: #FEECEB; color: #D93025;">방 초기화</button>
+    </div>
 </div>
 
 <script type="module">
@@ -136,7 +202,7 @@
     import { getDatabase, ref, set, onValue, push, remove, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     /* ==========================================================
-       [주의] 아래 영역에 본인의 Firebase 설정값을 입력하십시오.
+       [본인의 파이어베이스 설정을 아래에 입력하십시오]
        ========================================================== */
      // 1. 본인의 Firebase 설정값을 여기에 꼭 넣으세요!
     const firebaseConfig = {
@@ -151,7 +217,8 @@
     /* ========================================================== */
 
     const app = initializeApp(firebaseConfig); const db = getDatabase(app);
-    const userColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
+    const userColors = ['#1A73E8', '#D93025', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1', '#FF7043', '#9E9E9E'];
+    
     let isTeacher = false, selectedRole = null, currentRoom = "", myName = "선생님", myKey = "", questionCount = 0, quizDataCache = null, myCurrentIdx = 0, timerInterval = null;
 
     window.showView = (id) => { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); };
@@ -177,8 +244,7 @@
 
     function enableRole(role) {
         isTeacher = (role === 'teacher');
-        const area = document.getElementById('action-area');
-        area.classList.replace('disabled-section', 'enabled-section');
+        document.getElementById('action-area').classList.replace('disabled-section', 'enabled-section');
         if(isTeacher) {
             document.getElementById('student-inputs-area').style.display = 'none';
             document.getElementById('teacher-entry-options').style.display = 'block';
@@ -197,8 +263,10 @@
 
     window.addQuestionInput = () => {
         const id = questionCount++; const div = document.createElement('div'); div.className = 'quiz-item';
-        div.innerHTML = `<strong>문제 ${id + 1}</strong><textarea class="q-text" rows="2"></textarea><input type="number" class="q-time" placeholder="제한시간(초)" value="30">
-            <div class="opt-container">${[0,1,2,3].map(i => `<div class="opt-row"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''}> <input type="text" class="q-opt" placeholder="보기 ${i+1}"></div>`).join('')}</div>`;
+        div.style.background = "#fff"; div.style.border = "1px solid #DADCE0"; div.style.padding = "24px"; div.style.borderRadius = "16px"; div.style.marginBottom = "16px";
+        div.innerHTML = `<strong style="display:block;margin-bottom:12px;color:var(--primary)">문제 ${id + 1}</strong><textarea class="q-text" rows="2" placeholder="문제를 입력하세요 (LaTeX 가능)"></textarea>
+            <input type="number" class="q-time" placeholder="제한시간(초)" value="30" style="width:120px"> 초
+            <div class="opt-container" style="margin-top:16px">${[0,1,2,3].map(i => `<div style="display:flex;align-items:center;margin-bottom:8px"><input type="radio" name="correct_${id}" value="${i}" ${i===0?'checked':''} style="width:20px;margin-right:12px"> <input type="text" class="q-opt" placeholder="보기 ${i+1}" style="margin-bottom:0"></div>`).join('')}</div>`;
         document.getElementById('quiz-questions-input').appendChild(div);
     };
 
@@ -208,7 +276,7 @@
             text: item.querySelector('.q-text').value, options: Array.from(item.querySelectorAll('.q-opt')).map(o => o.value),
             answer: parseInt(item.querySelector(`input[name="correct_${idx}"]:checked`).value), timeLimit: parseInt(item.querySelector('.q-time').value) || 30
         })).filter(q => q.text && q.options[0]);
-        if(!title || !questions.length) return alert("입력 확인!");
+        if(!title || !questions.length) return alert("제목과 내용을 입력하세요.");
         push(ref(db, `quizSets`), { title, questions }).then(() => { alert("저장 완료"); loadQuizSets(); });
     };
 
@@ -218,7 +286,7 @@
             sel.innerHTML = ""; lst.innerHTML = "";
             if(snap.val()) Object.entries(snap.val()).forEach(([id, s]) => {
                 sel.innerHTML += `<option value="${id}">${s.title}</option>`;
-                lst.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>${s.title}</span> <button onclick="deleteQuizSet('${id}')" style="background:var(--red); color:white; padding:4px 8px; font-size:0.8rem;">삭제</button></div>`;
+                lst.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><span>${s.title}</span> <button onclick="deleteQuizSet('${id}')" style="background:#FEECEB; color:#D93025; padding:4px 12px; font-size:0.85rem;">삭제</button></div>`;
             });
         });
     };
@@ -254,8 +322,8 @@
             let finished = true, count = 0;
             Object.entries(users).forEach(([k, u]) => {
                 count++; const color = userColors[k.charCodeAt(k.length-1)%userColors.length];
-                const circle = `<div class="user-circle" style="background:${color}; width:35px; height:35px; font-size:0.7rem;">${u.name}</div>`;
-                lobbyList.innerHTML += `<div class="user-circle" style="background:${color};">${u.name}</div>`;
+                const circle = `<div class="user-circle" style="background:${color}; width:35px; height:35px; font-size:0.7rem; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold;">${u.name[0]}</div>`;
+                lobbyList.innerHTML += `<div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="background:${color};width:50px;height:50px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;box-shadow:0 2px 4px rgba(0,0,0,0.1)">${u.name[0]}</div><span style="font-size:0.8rem;font-weight:600">${u.name}</span></div>`;
                 let tIdx = u.currentIdx === -1 ? 0 : u.currentIdx; if(tIdx>totalQ) tIdx=totalQ;
                 const colDiv = document.getElementById(`col-${tIdx}`); if(colDiv) colDiv.innerHTML += circle;
                 if(u.currentIdx < totalQ) finished = false;
@@ -280,15 +348,16 @@
         if (myCurrentIdx >= totalQ) { update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: totalQ }); showView('view-ended'); return; }
         update(ref(db, `rooms/${currentRoom}/users/${myKey}`), { currentIdx: myCurrentIdx });
         document.getElementById('current-q-num').innerText = myCurrentIdx + 1;
-        const q = quizDataCache.questions[myCurrentIdx]; document.getElementById('problem-area').innerHTML = q.text;
+        const q = quizDataCache.questions[myCurrentIdx];
+        document.getElementById('problem-area').innerHTML = q.text;
         [0,1,2,3].forEach(i => { const b = document.getElementById(`btn-c${i}`); b.innerText = q.options[i]||"-"; b.disabled=false; });
         MathJax.typesetPromise(); startVisualTimer(q.timeLimit);
     }
 
     function startVisualTimer(dur) {
-        clearInterval(timerInterval); document.getElementById('bomb-ui').classList.remove('shake-small'); document.getElementById('wrong-x-overlay').style.display = 'none';
-        const rope = document.getElementById('rope-ui'), text = document.getElementById('timer-sec-ui');
-        rope.style.transition = 'none'; rope.style.width = '100%'; setTimeout(() => { rope.style.transition = `width ${dur}s linear`; rope.style.width = '0%'; }, 50);
+        clearInterval(timerInterval); document.getElementById('wrong-x-overlay').style.display = 'none';
+        const fill = document.getElementById('rope-ui'), text = document.getElementById('timer-sec-ui');
+        fill.style.transition = 'none'; fill.style.width = '100%'; setTimeout(() => { fill.style.transition = `width ${dur}s linear`; fill.style.width = '0%'; }, 50);
         let left = dur; text.innerText = `${left}s`;
         timerInterval = setInterval(() => { left--; text.innerText = `${left}s`; if(left <= 0) { clearInterval(timerInterval); explodeAndNext(); } }, 1000);
     }
@@ -301,7 +370,7 @@
     };
 
     function explodeAndNext() {
-        document.getElementById('bomb-ui').classList.add('shake-small'); document.getElementById('wrong-x-overlay').style.display = 'flex';
+        document.getElementById('wrong-x-overlay').style.display = 'flex';
         setTimeout(() => { myCurrentIdx++; loadProblem(); }, 500);
     }
 
@@ -310,19 +379,19 @@
             const data = snap.val(); if(!data || !data.users) return; const total = data.quizData.questions.length;
             let sMap = {}; Object.values(data.users).forEach(u => { const s = u.correct||0; if(!sMap[s]) sMap[s]=[]; sMap[s].push(u); });
             let uScores = Object.keys(sMap).map(Number).sort((a,b)=>b-a);
-            const cStep = (u, cls, ic) => { const a = total>0?Math.round((u.correct||0)/total*100):0; return `<div class="step ${cls}"><div style="font-size:1.3rem;">${ic}</div><div class="step-name">${u.name}</div><div class="step-score">${u.correct||0}/${total}<br>(${a}%)</div></div>`; };
+            const cStep = (u, cls, ic) => { const a = total>0?Math.round((u.correct||0)/total*100):0; return `<div class="step ${cls}"><div style="font-size:2rem;">${ic}</div><div class="step-name">${u.name}</div><div class="step-score">${u.correct||0}/${total}<br>(${a}%)</div></div>`; };
             let pHTML = ""; 
             (sMap[uScores[0]]||[]).forEach(u=>pHTML+=cStep(u,'first','🥇'));
             (sMap[uScores[1]]||[]).forEach(u=>pHTML+=cStep(u,'second','🥈'));
             (sMap[uScores[2]]||[]).forEach(u=>pHTML+=cStep(u,'third','🥉'));
             document.getElementById('podium-area').innerHTML = pHTML;
             const tb = document.getElementById('result-tbody'); tb.innerHTML = "";
-            uScores.forEach((s, idx) => { if(idx>2) sMap[s].forEach(u => tb.innerHTML += `<tr><td>${idx+1}위</td><td>${u.name}</td><td>${u.correct}</td><td>${total>0?Math.round(u.correct/total*100):0}%</td></tr>`); });
+            uScores.forEach((s, idx) => { let rank = idx + 1; if(idx>2) sMap[s].forEach(u => tb.innerHTML += `<tr><td>${rank}위</td><td>${u.name}</td><td>${u.correct}</td><td>${total>0?Math.round(u.correct/total*100):0}%</td></tr>`); });
         }, {onlyOnce: true});
     }
 
-    window.resetRoom = () => confirm("초기화?") && remove(ref(db, `rooms/${currentRoom}`)).then(()=>location.reload());
-    window.leaveRoom = () => confirm("종료하고 나갈까요?") && location.reload();
+    window.resetRoom = () => confirm("방을 초기화하시겠습니까?") && remove(ref(db, `rooms/${currentRoom}`)).then(()=>location.reload());
+    window.leaveRoom = () => confirm("종료하고 나가시겠습니까?") && location.reload();
 </script>
 </body>
 </html>
