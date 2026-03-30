@@ -44,12 +44,13 @@
         <p id="entry-desc">방 번호를 입력하여 수업에 참여하세요.</p>
         <input type="text" id="input-room" placeholder="방 번호 (예: 1234)">
         <br>
-        <div id="student-inputs">
-<div id="student-inputs">
-    <input type="text" id="input-name" placeholder="닉네임 입력 (최대 10자)" maxlength="10">
-    <br>
-</div>
-            <button id="btn-join" class="btn-blue" onclick="handleEntry()">수업 참여하기</button>
+        
+        <div id="student-inputs-area">
+            <input type="text" id="input-name" placeholder="닉네임 입력 (최대 10자)" maxlength="10">
+            <br>
+        </div>
+        
+        <button id="btn-join" class="btn-blue" onclick="handleEntry()">수업 참여하기</button>
     </div>
 </div>
 
@@ -103,16 +104,17 @@
     let myName = "선생님";
     let myKey = "";
 
-    // [초기 세팅] 교사 모드일 경우 UI 변경
-    if (isTeacher) {
-        document.getElementById('main-title').innerText = "AI 수학 퀴즈 [관리자]";
-        document.getElementById('entry-desc').innerText = "생성할 방 번호를 입력하세요.";
-        document.getElementById('student-inputs').style.display = 'none';
-        document.getElementById('btn-join').innerText = "방 생성 및 수업 시작";
-        document.getElementById('btn-join').className = "btn-teacher";
-        document.getElementById('teacher-controls').style.display = 'block';
-    }
-
+// [초기 세팅] 교사 모드일 경우 UI 변경 부분 찾아 수정
+if (isTeacher) {
+    document.getElementById('main-title').innerText = "AI 수학 퀴즈 [관리자]";
+    document.getElementById('entry-desc').innerText = "생성할 방 번호를 입력하세요.";
+    // 이 부분을 위에서 수정한 ID인 'student-inputs-area'로 변경
+    document.getElementById('student-inputs-area').style.display = 'none'; 
+    document.getElementById('btn-join').innerText = "방 생성 및 수업 시작";
+    document.getElementById('btn-join').className = "btn-teacher";
+    document.getElementById('teacher-controls').style.display = 'block';
+}
+    
     // [입장 로직] 교사는 방 생성, 학생은 참여
     window.handleEntry = function() {
         currentRoom = document.getElementById('input-room').value;
