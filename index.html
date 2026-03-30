@@ -22,6 +22,11 @@
         .btn-red { background: var(--red); color: white; }
         .btn-green { background: var(--green); color: white; }
 
+        /* 권한 설정 및 비활성화 영역 스타일 */
+        .role-box { background: #f1f5f9; padding: 20px; border-radius: 12px; margin-bottom: 24px; text-align: left; }
+        .disabled-section { opacity: 0.3; pointer-events: none; transition: opacity 0.3s; }
+        .enabled-section { opacity: 1; pointer-events: auto; }
+
         #user-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 24px 0; }
         .user-circle { width: 70px; height: 70px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; overflow-wrap: break-word; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
@@ -70,20 +75,36 @@
 <body>
 
 <div id="view-entry" class="view active">
-    <h1 style="color:var(--teacher); margin-bottom: 30px;">수학 객관식 퀴즈</h1>
-    <div id="teacher-entry-options" style="display:none; margin-bottom: 24px;">
-        <button class="btn-green" onclick="showView('view-quiz-manager')">퀴즈 세트 제작 및 관리</button>
+    <h1 style="color:var(--teacher); margin-bottom: 20px;">수학 객관식 퀴즈</h1>
+    
+    <div class="role-box">
+        <strong style="display:block; margin-bottom: 12px; color:#334155;">사용자 역할 선택</strong>
+        <label style="margin-right: 20px; cursor: pointer;"><input type="radio" name="role" value="student" checked onchange="previewRole()"> 👨‍🎓 학생</label>
+        <label style="cursor: pointer;"><input type="radio" name="role" value="teacher" onchange="previewRole()"> 👨‍🏫 교사</label>
+        <button class="btn-dark" style="padding: 8px 16px; margin-left: 15px; font-size: 0.9rem;" onclick="applyRole()">설정</button>
+        
+        <div id="password-area" style="display:none; margin-top: 15px;">
+            <input type="password" id="teacher-pwd" placeholder="비밀번호 입력" style="width: calc(100% - 90px); margin-bottom: 0; display: inline-block;">
+            <button class="btn-blue" style="width: 80px; margin: 0; padding: 14px 0;" onclick="verifyPwd()">확인</button>
+        </div>
     </div>
-    <div id="entry-form">
-        <input type="text" id="input-room" placeholder="방 번호를 입력하세요">
-        <div id="student-inputs-area">
-            <input type="text" id="input-name" placeholder="닉네임 (최대 10자)" maxlength="10">
+
+    <div id="action-area" class="disabled-section">
+        <div id="teacher-entry-options" style="display:none; margin-bottom: 24px;">
+            <button class="btn-green" onclick="showView('view-quiz-manager')" style="width: 100%;">📝 퀴즈 세트 제작 및 관리</button>
         </div>
-        <div id="teacher-set-selection" style="display:none; text-align: left; margin-bottom: 10px;">
-            <label style="font-size: 0.9rem; color:#64748b; font-weight:bold;">사용할 퀴즈 세트 선택</label>
-            <select id="select-quiz-set" style="margin-top: 5px;"><option value="">퀴즈를 먼저 제작하세요</option></select>
+        
+        <div id="entry-form">
+            <input type="text" id="input-room" placeholder="방 번호를 입력하세요">
+            <div id="student-inputs-area">
+                <input type="text" id="input-name" placeholder="닉네임 (최대 10자)" maxlength="10">
+            </div>
+            <div id="teacher-set-selection" style="display:none; text-align: left; margin-bottom: 10px;">
+                <label style="font-size: 0.9rem; color:#64748b; font-weight:bold;">사용할 퀴즈 세트 선택</label>
+                <select id="select-quiz-set" style="margin-top: 5px;"><option value="">퀴즈를 먼저 제작하세요</option></select>
+            </div>
+            <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin: 10px 0 0 0;">수업 참여하기</button>
         </div>
-        <button id="btn-join" class="btn-blue" onclick="handleEntry()" style="width: 100%; margin: 10px 0 0 0;">수업 참여하기</button>
     </div>
 </div>
 
@@ -155,10 +176,10 @@
             <tbody id="result-tbody"></tbody>
         </table>
     </div>
-    <button class="btn-dark" onclick="leaveRoom()" style="margin-top:24px; width: 100%;">종료하고 나가기</button>
+    <button class="btn-dark" onclick="leaveRoom()" style="margin-top:24px; width: 100%;">종료하고 방을 나가시겠습니까?</button>
 </div>
 
-<div id="teacher-controls" style="display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg); border-top: 1px solid #e2e8f0; padding:15px 20px; z-index:1000; box-shadow: 0 -4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+<div id="teacher-controls" style="display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg); border-top: 1px solid #e2e8f0; padding:15px 20px; z-index:1000; box-shadow: 0 -4px 6px rgba(0,0,0,0.05); justify-content: space-between; align-items: center;">
     <strong style="color: var(--teacher);">👨‍🏫 교사 제어 패널</strong>
     <div>
         <button class="btn-blue" id="btn-open-quiz" onclick="openQuiz()" style="margin-right: 10px;">퀴즈 오픈</button>
@@ -183,9 +204,9 @@
     
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const isTeacher = new URLSearchParams(window.location.search).get('role') === 'teacher';
     const userColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
     
+    let isTeacher = false;
     let currentRoom = "", myName = "선생님", myKey = "", questionCount = 0;
     let quizDataCache = null;
     let myCurrentIdx = 0;
@@ -198,6 +219,62 @@
 
     function getUserColor(key) { return userColors[key.charCodeAt(key.length - 1) % userColors.length]; }
 
+    // --- UI 권한 설정 로직 ---
+    window.previewRole = () => {
+        const role = document.querySelector('input[name="role"]:checked').value;
+        const actionArea = document.getElementById('action-area');
+        actionArea.classList.remove('enabled-section');
+        actionArea.classList.add('disabled-section');
+        document.getElementById('password-area').style.display = 'none';
+
+        if(role === 'teacher') {
+            document.getElementById('student-inputs-area').style.display = 'none';
+            document.getElementById('teacher-entry-options').style.display = 'block';
+            document.getElementById('teacher-set-selection').style.display = 'block';
+            document.getElementById('btn-join').innerText = "방 생성하기";
+        } else {
+            document.getElementById('student-inputs-area').style.display = 'block';
+            document.getElementById('teacher-entry-options').style.display = 'none';
+            document.getElementById('teacher-set-selection').style.display = 'none';
+            document.getElementById('btn-join').innerText = "수업 참여하기";
+        }
+    };
+
+    window.applyRole = () => {
+        const role = document.querySelector('input[name="role"]:checked').value;
+        if(role === 'teacher') {
+            document.getElementById('password-area').style.display = 'block';
+        } else {
+            enableActionArea('student');
+        }
+    };
+
+    window.verifyPwd = () => {
+        const pwd = document.getElementById('teacher-pwd').value;
+        if(pwd === 'abcd') {
+            document.getElementById('password-area').style.display = 'none';
+            enableActionArea('teacher');
+        } else {
+            alert('비밀번호가 일치하지 않습니다.');
+        }
+    };
+
+    function enableActionArea(role) {
+        isTeacher = (role === 'teacher');
+        const actionArea = document.getElementById('action-area');
+        actionArea.classList.remove('disabled-section');
+        actionArea.classList.add('enabled-section');
+
+        if(isTeacher) {
+            loadQuizSets();
+            document.getElementById('teacher-controls').style.display = 'flex';
+            document.body.style.paddingBottom = "80px";
+        } else {
+            document.getElementById('teacher-controls').style.display = 'none';
+        }
+    }
+
+    // --- 퀴즈 제작 및 관리 로직 ---
     window.addQuestionInput = () => {
         const id = questionCount++;
         const div = document.createElement('div'); div.className = 'quiz-item';
@@ -234,6 +311,7 @@
     };
     window.deleteQuizSet = (id) => remove(ref(db, `quizSets/${id}`));
 
+    // --- 입장 및 동기화 ---
     window.handleEntry = () => {
         currentRoom = document.getElementById('input-room').value;
         if(!currentRoom) return alert("방 번호를 입력하십시오.");
@@ -252,6 +330,7 @@
             onDisconnect(ref(db, `rooms/${currentRoom}/users/${myKey}`)).remove();
             set(uRef, { name: myName, currentIdx: -1, correct: 0 }); 
             showView('view-lobby'); document.getElementById('display-room').innerText = currentRoom;
+            document.getElementById('teacher-controls').style.display = 'none'; 
             startStudentSync();
         }
     };
@@ -364,7 +443,6 @@
 
         let timeLeft = duration; text.innerText = `${timeLeft}s`;
         
-        // setTimeout 대신 setInterval 내부에서 직접 시간을 통제하여 동기화 오류 방지
         timerInterval = setInterval(() => {
             timeLeft--; text.innerText = `${timeLeft}s`;
             if(timeLeft <= 0) {
@@ -430,38 +508,27 @@
             };
 
             let podiumHTML = "";
-            rank2Users.forEach(u => podiumHTML += createStepHTML(u, 'second', '🥈'));
             rank1Users.forEach(u => podiumHTML += createStepHTML(u, 'first', '🥇'));
+            rank2Users.forEach(u => podiumHTML += createStepHTML(u, 'second', '🥈'));
             rank3Users.forEach(u => podiumHTML += createStepHTML(u, 'third', '🥉'));
             document.getElementById('podium-area').innerHTML = podiumHTML;
             
             const tb = document.getElementById('result-tbody'); tb.innerHTML = "";
-            let currentRank = 1;
             uniqueScores.forEach((score, idx) => {
                 let group = scoreMap[score];
+                let rank = idx + 1; 
                 if (idx > 2) {
                     group.forEach(u => {
                         const acc = totalQs > 0 ? Math.round((u.correct / totalQs) * 100) : 0;
-                        tb.innerHTML += `<tr><td>${currentRank}위</td><td>${u.name}</td><td>${u.correct}</td><td>${acc}%</td></tr>`;
+                        tb.innerHTML += `<tr><td>${rank}위</td><td>${u.name}</td><td>${u.correct}</td><td>${acc}%</td></tr>`;
                     });
                 }
-                currentRank += group.length;
             });
         }, { onlyOnce: true });
     };
 
     window.resetRoom = () => confirm("방을 초기화하시겠습니까?") && remove(ref(db, `rooms/${currentRoom}`)).then(() => location.reload());
     window.leaveRoom = () => { if(confirm("종료하고 방을 나가시겠습니까?")) { if(myKey) remove(ref(db, `rooms/${currentRoom}/users/${myKey}`)); location.reload(); }};
-
-    if (isTeacher) { 
-        document.getElementById('teacher-entry-options').style.display = 'block'; 
-        document.getElementById('student-inputs-area').style.display = 'none'; 
-        document.getElementById('teacher-set-selection').style.display = 'block'; 
-        document.getElementById('btn-join').innerText = "방 생성하기"; 
-        document.getElementById('teacher-controls').style.display = 'flex'; 
-        document.body.style.paddingBottom = "80px";
-        loadQuizSets();
-    }
 </script>
 </body>
 </html>
